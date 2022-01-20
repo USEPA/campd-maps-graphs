@@ -1,0 +1,5 @@
+---
+applications:
+- name: campd-maps-graphs
+  memory: 256M
+  random-route: true
