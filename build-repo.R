@@ -1,7 +1,9 @@
 # make sure to install.packages("miniCRAN")
 library(miniCRAN)
 
-pkgs <- c("shiny","dotenv","shinydashboard")
+pkgs <- c("shiny","dotenv","shinydashboard","shinybusy",
+          "leaflet","plotly","tidyverse","lubridate",
+          "dplyr","leaflet.extras","raster", "units")
 # Update r.yml file!
 
 localCRAN <- file.path(getwd(), "vendor_r")
