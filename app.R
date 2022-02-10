@@ -1,3 +1,8 @@
+library(shiny)
+library(dotenv)
+
+load_dot_env(".env")
+
 appfold <- "01-app"
 
 shiny::runApp(appfold)
