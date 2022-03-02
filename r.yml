@@ -1,6 +1,6 @@
 ---
 packages:
-  - cran_mirror: https://cran.r-project.org
-    packages:
-      - name: dplyr
-      - name: ggvis
+  - packages:
+    - name: shiny
+    - name: dotenv
+    - name: shinydashboard
