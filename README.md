@@ -9,5 +9,8 @@ Make sure git and RStudio are installed on your machine.
 - Select *Git*
 - Enter repo URL, make a directory name, and create project as subdirectory with something like "C:/Users/name/campd-maps-graphs"
 
+## Build vendor
+- Adjust packages in build-repo.R and run the script.
+
 ## Run App Locally
 - Use shiny::runApp(appfold) in app.R (top dir)
