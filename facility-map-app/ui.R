@@ -13,10 +13,15 @@ ui <- fluidPage(
                  choices = c(),
                  options = list(placeholder = '--Select Program--',
                          onInitialize = I('function() { this.setValue(""); }')))),
-    column(4, actionButton("clearbutton", "Clear Program"), style="margin-top: 24px; margin-bottom: 10px;")
+    column(4,
+           selectizeInput("fuelType", label = "Chose a Fuel Type",
+                          choices = fuel_list,
+                          options = list(placeholder = '--Select Fuel Type--',
+                                         onInitialize = I('function() { this.setValue(""); }')))),
+    column(4, actionButton("clearbutton", "Clear Filters"), style="margin-top: 24px; margin-bottom: 10px;")
     ),
   fluidRow(tags$style(type = "text/css", "#map {!important;}"),
-           style = "padding-bottom: 10px;",
+          style = "padding-bottom: 10px;",
     absolutePanel(id = "elements", class = "panel panel-default",
       #draggable = FALSE,
       right = 0,

@@ -3,17 +3,14 @@ packages:
   - packages:
     - name: shiny
     - name: dotenv
-    - name: shiny
     - name: shinybusy
     - name: shinydashboard
     - name: leaflet
     - name: plotly
-    - name: ggplot2
     - name: httr
     - name: jsonlite
     - name: tidyverse
     - name: lubridate
-    - name: dplyr
     - name: zoo
     - name: leaflet.extras
     

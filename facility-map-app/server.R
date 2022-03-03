@@ -4,7 +4,7 @@ server <- function(session, input, output) {
   
   # listen to filter changes
   toListen <- reactive({
-    list(input$program,input$clearbutton)
+    list(input$program,input$fuelType,input$clearbutton)
   })
   
   # keep track of map clicks and filters to clear necessary UI elements
@@ -32,7 +32,8 @@ server <- function(session, input, output) {
   observeEvent(input$clearbutton, {
     updateSelectizeInput(session, "program", options = list(placeholder = '--Select Program--',
                                   onInitialize = I('function() { this.setValue(""); }')))
-    
+    updateSelectizeInput(session, "fuelType", options = list(placeholder = '--Select Fuel Type--',
+                                                            onInitialize = I('function() { this.setValue(""); }')))
   })
   
   # initial map
@@ -103,11 +104,13 @@ server <- function(session, input, output) {
                            "<br/>")
     }
     
+    #percent_diff <- get_emissions_percent_string(years,fac_id)
+    
     content <- as.character(
       tagList(
         tags$h4(selectedFac$facilityName[1]),
         tags$strong("Facility ID:"),sprintf(" %s", as.character(fac_id)), tags$br(),
-        tags$strong("Operation Year:"),sprintf(" %s", as.character(year_for_ploting)), tags$br(),
+        #tags$strong("Percent emissions change:"),sprintf(" %s", percent_diff), tags$br(),
         tags$strong("Owner/Operator:"),sprintf(" %s", as.character(ownoplist)), tags$br(),
         tags$strong("Unit Information:"),HTML(sprintf("<br/>%s", op_by_unit))
       ))
@@ -174,14 +177,26 @@ server <- function(session, input, output) {
     
     # CODE BETTER!!! getting data for map
     if (input$program == ""){
-      data_for_map <- fac_lat_long
+      data_for_map <- fac_data
     }
     else {
+      if (input$fuelType != ""){
+        data_for_map <- fac_data[grepl(input$fuelType, fac_data$primaryFuelInfo, fixed = TRUE),]
+        data_for_map <- rbind(data_for_map, fac_data[grepl(input$fuelType, fac_data$secondaryFuelInfo, fixed = TRUE),])
+      }
+      else {data_for_map <- fac_data}
       prg_code <- program_names[program_names$prg_name == input$program,]$prg_code
-      fac_data_prg <- fac_data
-      data_for_map <- fac_data_prg[grepl(prg_code, fac_data_prg$programCodeInfo, fixed = TRUE),]
+      data_for_map <- data_for_map[grepl(prg_code, data_for_map$programCodeInfo, fixed = TRUE),]
       
     }
+    # CODE BETTER!!! getting data for map
+    if (input$fuelType != ""){
+      pri_data_for_map <- data_for_map[grepl(input$fuelType, data_for_map$primaryFuelInfo, fixed = TRUE),]
+      data_for_map <- rbind(pri_data_for_map, data_for_map[grepl(input$fuelType, data_for_map$secondaryFuelInfo, fixed = TRUE),])
+    }
+    
+    data_for_map <- get_facilities_lat_long(data_for_map)
+    
     #add markers to map with cluster option
     map %>% addMarkers(data = data_for_map,
                        lng = ~longitude, lat = ~latitude, 

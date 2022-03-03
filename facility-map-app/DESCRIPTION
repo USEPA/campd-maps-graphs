@@ -2,6 +2,6 @@ Title: Facility
 Author: CAMPD Team
 AuthorUrl: ### campdurl
 License: ###
-DisplayMode: Showcase
+#DisplayMode: Showcase
 Tags: map-for-getting-started
 Type: Shiny
