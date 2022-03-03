@@ -3,7 +3,6 @@ packages:
   - packages:
     - name: shiny
     - name: dotenv
-    - name: shiny
     - name: shinybusy
     - name: shinydashboard
     - name: leaflet

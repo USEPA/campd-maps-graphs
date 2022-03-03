@@ -4,12 +4,10 @@ library(shinybusy)
 library(shinydashboard)
 library(leaflet)
 library(plotly)
-library(ggplot2)
 library(httr)
 library(jsonlite)
 library(tidyverse)
 library(lubridate)
-library(dplyr)
 library(zoo)
 library(leaflet.extras)
 
@@ -17,6 +15,6 @@ load_dot_env(".env")
 
 appfold <- "facility-map-app"
 
-#shiny::runApp(appfold)
+shiny::runApp(appfold)
 # swtich to below while deploying
-shiny::runApp(appfold, host="0.0.0.0", port=strtoi(Sys.getenv("PORT")))
+#shiny::runApp(appfold, host="0.0.0.0", port=strtoi(Sys.getenv("PORT")))

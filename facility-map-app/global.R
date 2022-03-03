@@ -1,6 +1,6 @@
 
 ####### constants #######
-years <- c(1980, 1985, 1990, seq(1995, 2020))
+years <- c(seq(1995, 2020))
 API_url_base <- Sys.getenv("API_url_base")
 API_KEY <- Sys.getenv("API_KEY")
 measure_units <- data.frame("emiss_type" = c("so2Mass","so2Rate","noxMass",
@@ -45,15 +45,39 @@ get_annual_fac_emissions_data <- function(years, facilityId){
   year_emiss_data <- fromJSON(rawToChar(res$content))
 }
 
+# emissions percent change by pollutant for a facility
+get_emissions_percent_df <- function(years, facilityId){
+  year_emiss_data <- get_annual_fac_emissions_data(years, facilityId)
+  year_fac_emiss_data <- aggregate(cbind(so2Mass,co2Mass,noxMass) 
+                                   ~ stateCode + year + 
+                                     facilityName + facilityId, 
+                                   data = year_emiss_data, 
+                                   FUN = sum, na.rm = TRUE)
+  first_3_years <- year_fac_emiss_data[1:3,]
+  so2maxrow <- first_3_years[which.max(first_3_years$so2Mass),]
+  noxmaxrow <- first_3_years[which.max(first_3_years$noxMass),]
+  co2maxrow <- first_3_years[which.max(first_3_years$co2Mass),]
+  current_emiss <- year_fac_emiss_data[which(year_fac_emiss_data$year == year_for_ploting),]
+  
+  so2_percent_diff <- ifelse(so2maxrow$so2Mass > current_emiss$so2Mass, 
+         percentage_decrease(so2maxrow$so2Mass,current_emiss$so2Mass), 
+         percentage_increase(so2maxrow$so2Mass,current_emiss$so2Mass))
+}
+
+percentage_decrease <- function(start_val,final_val){
+  percent <- (start_val-final_val)/start_val*100
+}
+percentage_increase <- function(start_val,final_val){
+  percent <- (final_val-start_val)/start_val*100
+}
+
 # API call to get all unit attribute data given years
-get_unit_att_data <- function(years){
+get_unit_att_data <- function(year){
   url <- paste0(API_url_base,"/facilities-mgmt/facilities/attributes?api_key=",API_KEY)
-  full_data <- data.frame()
-  for(year in years){
-    res = GET(url, query = list(year=year))
-    data <- fromJSON(rawToChar(res$content))
-    full_data <- rbind(full_data,data)
-  }
+  res = GET(url, query = list(year=year,
+                              page="1",
+                              perPage="20000"))
+  full_data <- fromJSON(rawToChar(res$content))
   full_data
 }
 
@@ -81,6 +105,7 @@ get_allow_holding_data <- function(facilityId){
   holding_data
 }
 
+
 # get only facilities lat and long 
 get_facilities_lat_long <- function(data){
   fac_data <- data %>% select(facilityId, facilityName,
@@ -92,6 +117,7 @@ get_facilities_lat_long <- function(data){
 get_facility_att_data <- function(data){
   fac_data <- data %>% select(stateCode, county, facilityId, 
                               facilityName, year, programCodeInfo,
+                              primaryFuelInfo, secondaryFuelInfo,
                               longitude, latitude)
   fac_data <- unique(fac_data)
 }
@@ -107,9 +133,25 @@ get_programs <- function(data, year){
   prg_code_names <- merge(program_names, prg_df, by="prg_code")
 }
 
+# get all fuel types for a given year
+get_fuel_types <- function(data, year){
+  fuel_data <- data %>% select(year, primaryFuelInfo, secondaryFuelInfo)
+  fuel_data <- fuel_data[fuel_data$year == year,]
+  prim_fuel_list <- unique(fuel_data$primaryFuelInfo)
+  prim_fuel_list[sapply(prim_fuel_list, length) != 0] <- c(strsplit(unlist(prim_fuel_list), ", "))
+  prim_fuel_list <- na.omit(unique(unlist(prim_fuel_list)))
+  #print(unique(as.list(prim_fuel_list)))
+  sec_fuel_list <- unique(fuel_data$secondaryFuelInfo)
+  sec_fuel_list[sapply(sec_fuel_list, length) != 0] <- strsplit(unlist(sec_fuel_list), ", ")
+  sec_fuel_list <- na.omit(unique(unlist(sec_fuel_list)))
+  fuel_list <- unique(unlist(c(prim_fuel_list, sec_fuel_list)))
+  
+}
+
 # calls of functions for global variables
 year_for_ploting <- years[length(years)]
 data <- get_unit_att_data(year_for_ploting)
+fuel_list <- get_fuel_types(data, year_for_ploting)
 fac_lat_long <- get_facilities_lat_long(data)
 fac_data <- get_facility_att_data(data)
 
