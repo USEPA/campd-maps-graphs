@@ -14,4 +14,4 @@ Make sure git and RStudio are installed on your machine.
 
 ## Deploying to Cloud.Gov
 - Use the build-repo.R to populate the vendor_r directory
-- If using leaflet, you'll need to clone (with permissions) from https://github.com/testorg-2020/cflinuxfs3-CRAN/tree/master/cflinuxfs3/src/contrib 
+- If using leaflet, you'll need to clone (with permissions) from https://github.com/testorg-2020/cflinuxfs3-CRAN
