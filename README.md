@@ -9,6 +9,7 @@ Make sure git and RStudio are installed on your machine.
 - Select *Git*
 - Enter repo URL, make a directory name, and create project as subdirectory with something like "C:/Users/name/campd-maps-graphs"
 
+### .env file
 Drop your .env file in root
 - Use your API Key
 - Use the base of our API URLs
