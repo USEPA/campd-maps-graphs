@@ -10,11 +10,8 @@ Make sure git and RStudio are installed on your machine.
 - Enter repo URL, make a directory name, and create project as subdirectory with something like "C:/Users/name/campd-maps-graphs"
 
 ## Build vendor
-- Adjust packages in build-repo.R and run the script.
+- Adjust packages in build-repo.R and run the script
+- If using leaflet, you'll need to clone (with permissions) from https://github.com/testorg-2020/cflinuxfs3-CRAN
 
 ## Run App Locally
 - Use shiny::runApp(appfold) in app.R (top dir)
-
-## Deploying to Cloud.Gov
-- Use the build-repo.R to populate the vendor_r directory
-- If using leaflet, you'll need to clone (with permissions) from https://github.com/testorg-2020/cflinuxfs3-CRAN
