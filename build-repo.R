@@ -1,5 +1,5 @@
 # Go here to clone repo when using leaflet.
-# https://github.com/testorg-2020/cflinuxfs3-CRAN/tree/master/cflinuxfs3/src/contrib
+# https://github.com/testorg-2020/cflinuxfs3-CRAN
 
 # Otherwise edit the pkgs to include all packages for the app
 # you are deploying
