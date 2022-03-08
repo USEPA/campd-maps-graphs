@@ -1,9 +1,19 @@
-library(shiny)
 library(dotenv)
+library(shiny)
+library(shinybusy)
+library(shinydashboard)
+library(leaflet)
+library(plotly)
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(lubridate)
+library(zoo)
+library(leaflet.extras)
 
 load_dot_env(".env")
 
-appfold <- "01-app"
+appfold <- "facility-map-app"
 
 shiny::runApp(appfold)
 # swtich to below while deploying

@@ -1,0 +1,1 @@
+This facility map Shiny application allows users to discover facilities near them. 
