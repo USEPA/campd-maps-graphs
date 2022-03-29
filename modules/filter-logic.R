@@ -57,7 +57,7 @@ columnFilter <- function(input, output, session, df, col_num, choice_filter) {
       TRUE
     } else if (!isTruthy(input$filter_value)) {
       TRUE
-    } else {
+    } else { 
       if (names(df())[[col_num]] == "year"){
         df()[,col_num,drop=TRUE] %in% seq(input$filter_value[1],input$filter_value[2])
       }
