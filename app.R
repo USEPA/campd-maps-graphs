@@ -13,6 +13,8 @@ library(leaflet.extras)
 
 load_dot_env(".env")
 
+source("./globals/global.R")
+
 appfold <- "facility-map-app"
 
 shiny::runApp(appfold)
