@@ -2,7 +2,7 @@ library(shiny)
 library(shinydashboard)
 source("filter-logic.R")
 
-# Run after loading API info (key and url) 
+# Run after loading API info (key and url)
 
 column_indexes <- match(c("stateCode","controlCode","fuelTypeCode","unitTypeCode","year"),names(fac_data))
 
