@@ -15,7 +15,7 @@ load_dot_env(".env")
 
 source("./globals/global.R")
 
-appfold <- "facility-map-app"
+appfold <- "emission-app"
 
 shiny::runApp(appfold)
 # swtich to below while deploying

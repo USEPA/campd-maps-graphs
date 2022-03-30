@@ -1,6 +1,6 @@
 ### UI
 
-navbarPage("Emission Tools",
+navbarPage(strong("Emission Tools"),
            tabPanel("Emission Trends",
                     titlePanel("Emission Trends"),
                     textOutput("emissionTrendsText"),

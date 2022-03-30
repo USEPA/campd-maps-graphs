@@ -1,11 +1,11 @@
 ### Server
 function(input, output, session) {
   
-  output$allowanceBankText <- renderPrint({
+  output$allowanceBankText <- renderText({
     "..."
   })
   
-  output$programBugetsText <- renderPrint({
+  output$programBugetsText <- renderText({
     "..."
   })
 }

@@ -1,6 +1,6 @@
 ### UI
 
-navbarPage("Allowance Tools",
+navbarPage(strong("Allowance Tools"),
            tabPanel("Allowance Bank",
                     titlePanel("Allowance Bank"),
                     textOutput("allowanceBankText"),

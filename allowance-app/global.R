@@ -1,5 +1,9 @@
 ### Global
 
+applicableAllowanceComplianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/attributes/applicable?api_key=",apiKEY)
+res = GET(applicableAllowanceComplianceUrl)
+applicableAllowanceCompliance <- fromJSON(rawToChar(res$content))
+
 # API calls to get compliance data
 # format queryList - list(stateCode = paste0(c("AL"), collapse = '|'),programCodeInfo = paste0(c("ARP"), collapse = '|'))
 # where states is a c() vector of elements
