@@ -9,9 +9,11 @@ library(jsonlite)
 library(tidyverse)
 library(lubridate)
 library(zoo)
-library(leaflet.extras)
+library(leaflet.extras) 
 
 load_dot_env(".env")
+
+source("./globals/global.R")
 
 appfold <- "facility-map-app"
 
