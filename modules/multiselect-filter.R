@@ -3,36 +3,35 @@ multiSelectUI <- function(id, label, choices) {
   tagList(
     selectizeInput(ns("multiselection"), 
                 label, choices, 
-                multiple = TRUE)
+                multiple = TRUE, options = list(
+                  'plugins' = list('remove_button'),
+                  'create' = TRUE,
+                  'persist' = FALSE))
   )
 }
 
 multiSelectServer <- function(input, output, session, 
-                              incoming_input, colCondition, 
-                              #reactive_choices, # think about this more
-                              reactive_data) {
+                              df, columnToFilter) {
   
-  # think about this more
-  #observeEvent(reactive_data(),{
-  #  updateSelectizeInput(session, "multiselection", choices=reactive_choices())
-  #})
-  
-  x <- reactiveValues(data=NULL)
+  toReturn <- reactiveValues(data=df,selections=list())
   
   selection <- reactive({
     #validate(need(input$multiselection, FALSE))
     input$multiselection
   })
   
-  observeEvent(input$multiselection, {
-    x$data <- reactive_data()[reactive_data()[[colCondition]] %in% selection(),]
+  observe({
+    if (!isTruthy(selection())){
+      toReturn$selections[[columnToFilter]] <- NULL
+      toReturn$data <- df()
+    }
+    if (length(selection()) > 0) {
+      toReturn$selections[[columnToFilter]] <- selection()
+      toReturn$data <- df()[df()[[columnToFilter]] %in% selection(),]
+    }
+    else{toReturn$data <- df()}
   })
   
-  observeEvent(incoming_input$clearButton, {
-    updateSelectizeInput(session, "multiselection", selected = "")
-    x$data <- reactive_data()
-  })
-  
-  return(reactive({x$data}))
+  return(toReturn)
   
 }

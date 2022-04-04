@@ -1,6 +1,6 @@
 
 ####### constants #######
-years <- c(seq(1995, 2020))
+years <- c(1980, 1985, 1990, seq(1995, as.integer(format(Sys.Date(), "%Y"))))
 API_url_base <- Sys.getenv("API_url_base")
 API_KEY <- Sys.getenv("API_KEY")
 measure_units <- data.frame("emiss_type" = c("so2Mass","so2Rate","noxMass",
@@ -149,7 +149,10 @@ get_fuel_types <- function(data, year){
 }
 
 # calls of functions for global variables
-year_for_ploting <- years[length(years)]
+url <- paste0(API_url_base,"/account-mgmt/allowance-compliance?api_key=",API_KEY)
+index <- get_latest_year_index(url, years)
+print(years[index])
+year_for_ploting <- years[index]
 data <- get_unit_att_data(year_for_ploting)
 fuel_list <- get_fuel_types(data, year_for_ploting)
 fac_lat_long <- get_facilities_lat_long(data)
