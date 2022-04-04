@@ -91,6 +91,11 @@ for (prg in allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALS
     }
   }
 }
+
+allCompliancePrograms$programDescription <- paste0(
+  allCompliancePrograms$programDescription, " (",
+  allCompliancePrograms$programCode, ")")
+
 currentCompliancePrograms <- allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]
 
 # Storing states 
@@ -114,6 +119,19 @@ url <- paste0(apiUrlBase,"/master-data-mgmt/unit-types?API_KEY=",apiKEY)
 res = GET(url)
 unitTypes <- fromJSON(rawToChar(res$content))
 
+# table to convert column name to appropriate lables for UI
+columnName <- c("programDescription", "stateName", 
+                "unitTypeGroupDescription", "fuelGroupDescription", 
+                "controlEquipParamDescription", "year")
+label <- c("Select one or more programs",
+           "Select one or more states",
+           "Select one or more unit types",
+           "Select one or more fuel",
+           "Select one or more control technologies",
+           "Select a range of years")
+
+labelConversion <- data.frame(columnName, label)
+
 ## global functions
 
 get_facility_data <- function(startYear, endYear){
@@ -126,5 +144,5 @@ get_facility_data <- function(startYear, endYear){
   facilityData
 }
 
-facilityData <- get_facility_data(1995,get_latest_valid_vear(facilitiesUrl))
+#facilityData <- get_facility_data(1995,get_latest_valid_vear(facilitiesUrl))
 
