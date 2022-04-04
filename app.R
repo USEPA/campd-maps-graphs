@@ -1,21 +1,25 @@
 library(dotenv)
 library(shiny)
+library(shinyjs)
 library(shinybusy)
 library(shinydashboard)
-library(leaflet)
+#library(leaflet)
 library(plotly)
 library(httr)
 library(jsonlite)
 library(tidyverse)
 library(lubridate)
 library(zoo)
-library(leaflet.extras) 
+#library(leaflet.extras) 
 
 load_dot_env(".env")
 
 source("./globals/global.R")
+source("./modules/filter-logic.R")
+source("./modules/multiselect-filter.R")
+source("./modules/line-graph.R")
 
-appfold <- "facility-map-app"
+appfold <- "allowance-app"
 
 shiny::runApp(appfold)
 # swtich to below while deploying

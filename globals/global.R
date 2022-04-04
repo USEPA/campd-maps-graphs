@@ -43,6 +43,8 @@ get_latest_valid_vear <- function(url, program=NULL){
 annualEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual?API_KEY=",apiKEY)
 # compliance url
 complianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?API_KEY=",apiKEY)
+# compliance url
+facilitiesUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/applicable?API_KEY=",apiKEY)
 
 # adding CAIR years
 allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode %in% c("CAIROS","CAIRNOX"))] <- list(c(seq(2008, 2014)))
@@ -89,6 +91,11 @@ for (prg in allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALS
     }
   }
 }
+
+allCompliancePrograms$programDescription <- paste0(
+  allCompliancePrograms$programDescription, " (",
+  allCompliancePrograms$programCode, ")")
+
 currentCompliancePrograms <- allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]
 
 # Storing states 
@@ -112,32 +119,30 @@ url <- paste0(apiUrlBase,"/master-data-mgmt/unit-types?API_KEY=",apiKEY)
 res = GET(url)
 unitTypes <- fromJSON(rawToChar(res$content))
 
+# table to convert column name to appropriate lables for UI
+columnName <- c("programDescription", "stateName", 
+                "unitTypeGroupDescription", "fuelGroupDescription", 
+                "controlEquipParamDescription", "year")
+label <- c("Select one or more programs",
+           "Select one or more states",
+           "Select one or more unit types",
+           "Select one or more fuel",
+           "Select one or more control technologies",
+           "Select a range of years")
+
+labelConversion <- data.frame(columnName, label)
+
 ## global functions
 
-get_facility_data <- function(years){
+get_facility_data <- function(startYear, endYear){
   
-  url <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/applicable?API_KEY=",apiKEY)
-  startYear <- years[1]
-  lastYear <- years[length(years)]
-  query <- list(year=(paste0(lastYear, collapse = '|')))
-  
-  res = GET(url, query = query)
-  facilityData <- fromJSON(rawToChar(res$content))
-  
-  # check for latest year of data
-  while (length(facilityData$statusCode) > 0 | length(facilityData) == 0){
-    lastYear <- lastYear-1
-    query <- list(year=(paste0(lastYear, collapse = '|')))
-    res = GET(url, query = query)
-    facilityData <- fromJSON(rawToChar(res$content))
-  }
-  years <- seq(startYear,lastYear-1)
+  years <- seq(startYear,endYear)
   query <- list(year=(paste0(years, collapse = '|')))
-  res = GET(url, query = query)
-  facilityData <- rbind(facilityData,fromJSON(rawToChar(res$content)))
+  res = GET(facilitiesUrl, query = query)
+  facilityData <- fromJSON(rawToChar(res$content))
   
   facilityData
 }
 
-facilityData <- get_facility_data(seq(1995,as.integer(format(Sys.Date(), "%Y"))))
+#facilityData <- get_facility_data(1995,get_latest_valid_vear(facilitiesUrl))
 

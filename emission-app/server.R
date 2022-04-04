@@ -1,11 +1,11 @@
 ### Server
 function(input, output, session) {
   
-  output$emissionTrendsText <- renderPrint({
+  output$emissionTrendsText <- renderText({
     "..."
   })
   
-  output$unitLandscapeText <- renderPrint({
+  output$unitLandscapeText <- renderText({
     "..."
   })
 }

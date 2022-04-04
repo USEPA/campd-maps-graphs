@@ -198,8 +198,9 @@ server <- function(session, input, output) {
     data_for_map <- get_facilities_lat_long(data_for_map)
     
     #add markers to map with cluster option
-    map %>% addMarkers(data = data_for_map,
-                       lng = ~longitude, lat = ~latitude, 
+    map %>% addTiles() %>% addMarkers(data = data_for_map,
+                       lng = ~longitude, 
+                       lat = ~latitude, 
                        layerId = ~facilityId,
                        clusterOptions = markerClusterOptions())
   })

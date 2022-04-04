@@ -1,15 +1,35 @@
 ### Global
 
+applicableAllowanceComplianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/attributes/applicable?api_key=",apiKEY)
+res = GET(applicableAllowanceComplianceUrl)
+applicableAllowCompTable <- fromJSON(rawToChar(res$content))
+
+applicableAllowCompTable = merge(x=applicableAllowCompTable,
+           y=allCompliancePrograms[,c("programCode","programDescription")],
+           by="programCode",all.x=TRUE)
+
+applicableAllowCompTable = merge(x=applicableAllowCompTable,
+           y=states[,c("stateCode","stateName")],
+           by="stateCode",all.x=TRUE)
+
+uniquePrograms <- unique(applicableAllowCompTable$programDescription)
+uniqueStates <- unique(applicableAllowCompTable$stateName)
+
+allowanceBankFilterIndicesState <- match(c("programDescription","stateName")
+                                         ,names(applicableAllowCompTable))
+
 # API calls to get compliance data
 # format queryList - list(stateCode = paste0(c("AL"), collapse = '|'),programCodeInfo = paste0(c("ARP"), collapse = '|'))
 # where states is a c() vector of elements
-get_allow_comp_data <- function(complianceYears, queryList){
+get_allow_comp_data <- function(complianceYears, programs=NULL, states=NULL){
   pageIndex <- 1
   perPage <- 1000
   
   url <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?api_key=",apiKEY)
-  query <- append(queryList, list(year=(paste0(complianceYears, collapse = '|')),
-                                       perPage=as.character(perPage)))
+  query <- list(year=(paste0(complianceYears, collapse = '|')),
+                perPage=as.character(perPage))
+  if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
+  if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   
   queryIndex <- append(query, list(page=pageIndex))
   
