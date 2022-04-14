@@ -1,5 +1,5 @@
 ---
 applications:
-- name: campd-maps-graphs
-  memory: 256M
+- name: CAMPD Maps & Graphs
+  memory: 999M
   random-route: true
