@@ -4,9 +4,9 @@ applicableAllowanceComplianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-c
 res = GET(applicableAllowanceComplianceUrl)
 applicableAllowCompTable <- fromJSON(rawToChar(res$content))
 
-applicableAllowCompTable = merge(x=applicableAllowCompTable,
-           y=allCompliancePrograms[,c("programCode","programDescription")],
-           by="programCode",all.x=TRUE)
+applicableAllowCompTable = na.omit(merge(x=applicableAllowCompTable,
+           y=currentCompliancePrograms[,c("programCode","programDescription")],
+           by="programCode",all.x=TRUE))
 
 applicableAllowCompTable = merge(x=applicableAllowCompTable,
            y=states[,c("stateCode","stateName")],
@@ -18,38 +18,27 @@ uniqueStates <- unique(applicableAllowCompTable$stateName)
 allowanceBankFilterIndicesState <- match(c("programDescription","stateName")
                                          ,names(applicableAllowCompTable))
 
-# API calls to get compliance data
-# format queryList - list(stateCode = paste0(c("AL"), collapse = '|'),programCodeInfo = paste0(c("ARP"), collapse = '|'))
-# where states is a c() vector of elements
-get_allow_comp_data <- function(complianceYears, programs=NULL, states=NULL){
-  pageIndex <- 1
-  perPage <- 1000
-  
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?api_key=",apiKEY)
-  query <- list(year=(paste0(complianceYears, collapse = '|')),
-                perPage=as.character(perPage))
-  if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
-  if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
-  
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  yearComplianceData <- fromJSON(rawToChar(res$content))
-  
-  if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      # Some columns are missing in early data
-      # this fills missing columns with NULL
-      if (length(names(newData)) != length(names(yearComplianceData))){
-        yearComplianceData[names(newData)[!(names(newData) %in% names(yearComplianceData))]] <- NA
-      }
-      yearComplianceData <- rbind(yearComplianceData, fromJSON(rawToChar(res$content)))
-    }
-  }
-  else{retun(NULL)}
-  yearComplianceData
+noxAnnualPrograms <- c("CSNOX")
+so2AnnualPrograms <- c("CSSO2G1",
+                       "CSSO2G2")
+noxOzonePrograms <- c("CSOSG1", 
+                      "CSOSG2",
+                      "CSOSG3")
+
+state_budgets <- read.csv("./globals/csapr-state-assurance-levels.csv")
+state_budgets <- merge(state_budgets, currentCompliancePrograms[,c("programCode","programDescription")],by="programCode",all.x=TRUE)
+state_budgets <- merge(state_budgets, states[,c("stateCode","stateName")],by="stateName",all.x=TRUE)
+
+programBudgetFilterIndicesState <- match(c("programDescription","year")
+                                         ,names(state_budgets))
+
+latest_compliance_csapr <- max(na.omit(unlist(currentCompliancePrograms[grep("^CS", currentCompliancePrograms$programCode),]$emissionYears)))
+
+if (max(state_budgets$year) < latest_compliance_csapr){
+  budgetsToCopy <- state_budgets[state_budgets$year == max(state_budgets$year) & state_budgets$programCode != "CSOSG3",]
+  addedYearBudgets <- bind_rows(lapply(rep((max(state_budgets$year)+1):latest_compliance_csapr), function(budgetYear){
+    budgetsToCopy$year <- budgetYear
+    budgetsToCopy
+  }))
+  state_budgets <- rbind(state_budgets, addedYearBudgets)
 }
