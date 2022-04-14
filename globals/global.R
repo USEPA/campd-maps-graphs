@@ -2,10 +2,16 @@
 apiUrlBase <- Sys.getenv("API_url_base")
 apiKEY <- Sys.getenv("API_KEY")
 
-# Getting all programs and storing appropriate emission and compliance years
+# Gett all programs and storing appropriate emission and compliance years
 url <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
-res = GET(url, query = list(allowanceUIFilter="true"))
-allCompliancePrograms <- fromJSON(rawToChar(res$content))
+res = GET(url)
+allPrograms <- fromJSON(rawToChar(res$content))
+allPrograms$programDescription <- paste0(
+  allPrograms$programDescription, " (",
+  allPrograms$programCode, ")")
+
+# Get all allowance programs 
+allCompliancePrograms <- allPrograms[allPrograms$allowanceUIFilter == TRUE,]
 
 # adding emission and compliance year columns
 allCompliancePrograms["emissionYears"] <- NA
@@ -92,11 +98,13 @@ for (prg in allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALS
   }
 }
 
-allCompliancePrograms$programDescription <- paste0(
-  allCompliancePrograms$programDescription, " (",
-  allCompliancePrograms$programCode, ")")
-
 currentCompliancePrograms <- allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]
+
+allLatestEmissionYears <- lapply(currentCompliancePrograms$programCode, function(program){
+  max(unlist(currentCompliancePrograms$emissionYears[currentCompliancePrograms$programCode == program]))
+})
+
+latestEmissionsYear <- min(unlist(allLatestEmissionYears))
 
 # Storing states 
 url <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)
@@ -120,29 +128,187 @@ res = GET(url)
 unitTypes <- fromJSON(rawToChar(res$content))
 
 # table to convert column name to appropriate lables for UI
-columnName <- c("programDescription", "stateName", 
-                "unitTypeGroupDescription", "fuelGroupDescription", 
-                "controlEquipParamDescription", "year")
-label <- c("Select one or more programs",
-           "Select one or more states",
-           "Select one or more unit types",
-           "Select one or more fuel",
-           "Select one or more control technologies",
-           "Select a range of years")
+mulitLabelConversion <- data.frame(columnName=c("programDescription", 
+                                                "stateName", 
+                                                "unitTypeGroupDescription", 
+                                                "fuelGroupDescription", 
+                                                "controlEquipParamDescription", 
+                                                "year"), 
+                                   label=c("Select up to 5 regulatory programs",
+                                           "Select up to 5 states(required)",
+                                           "Select up to 5 unit types",
+                                           "Select up to 5 fuel types",
+                                           "Select up to 5 control technologies",
+                                           "Select a range of years"))
 
-labelConversion <- data.frame(columnName, label)
+singleLabelConversion <- data.frame(columnName=c("programDescription", 
+                                                 "stateName", 
+                                                 "facilityName",
+                                                 "year"), 
+                                    label=c("Select a regulatory program (required)",
+                                            "Select a state (required)",
+                                            "Select a facility (required)",
+                                            "Select a year (required)"))
+
+tableLabelConversion <- data.frame(columnName=c("programCode", 
+                                                "programDescription", 
+                                                "stateName", 
+                                                "unitTypeGroupDescription", 
+                                                "fuelGroupDescription", 
+                                                "controlEquipParamDescription", 
+                                                "year",
+                                                "allocated",
+                                                "totalAllowancesDeducted",
+                                                "carriedOver"), 
+                                   label=c("Program Code", 
+                                           "Regulatory Program",
+                                           "State Name",
+                                           "Unit Types",
+                                           "Fuel Types",
+                                           "Control Technologies",
+                                           "Year",
+                                           "Allowances Allocated", 
+                                           "Allowances Deducted", 
+                                           "Allowances Banked"))
 
 ## global functions
 
-get_facility_data <- function(startYear, endYear){
+get_annual_emiss_data <- function(emissionYears, programs=NULL, 
+                                  unitType=NULL, unitFuelType=NULL, 
+                                  states=NULL, facilities=NULL){
+  pageIndex <- 1
+  perPage <- 1000
   
-  years <- seq(startYear,endYear)
-  query <- list(year=(paste0(years, collapse = '|')))
-  res = GET(facilitiesUrl, query = query)
-  facilityData <- fromJSON(rawToChar(res$content))
+  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual?api_key=",apiKEY)
+  query <- list(year=(paste0(emissionYears, collapse = '|')),
+                perPage=as.character(perPage))
+  if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
+  if (!is.null(unitType)){query <- append(query, list(unitType = (paste0(unitType, collapse = '|'))))}
+  if (!is.null(unitFuelType)){query <- append(query, list(unitFuelType = (paste0(fuelType, collapse = '|'))))}
+  if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
+  if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  facilityData
+  queryIndex <- append(query, list(page=pageIndex))
+  
+  res = GET(url, query = queryIndex)
+  annualEmissData <- fromJSON(rawToChar(res$content))
+  
+  if (length(res$content) > 2){
+    while(length(res$content) > 2){
+      pageIndex <- pageIndex + 1
+      queryIndex <- append(query, list(page=pageIndex))
+      res = GET(url, query = queryIndex)
+      newData <- fromJSON(rawToChar(res$content))
+      
+      annualEmissData <- rbind(annualEmissData, newData)
+    }
+  }
+  else(return(NULL))
+  annualEmissData
+}
+
+get_ozone_emiss_data <- function(emissionYears, programs=NULL, 
+                                  unitType=NULL, unitFuelType=NULL, 
+                                  states=NULL, facilities=NULL){
+  pageIndex <- 1
+  perPage <- 1000
+  
+  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone?api_key=",apiKEY)
+  query <- list(year=(paste0(emissionYears, collapse = '|')),
+                perPage=as.character(perPage))
+  if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
+  if (!is.null(unitType)){query <- append(query, list(unitType = (paste0(unitType, collapse = '|'))))}
+  if (!is.null(unitFuelType)){query <- append(query, list(unitFuelType = (paste0(fuelType, collapse = '|'))))}
+  if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
+  if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
+  
+  queryIndex <- append(query, list(page=pageIndex))
+  
+  res = GET(url, query = queryIndex)
+  annualEmissData <- fromJSON(rawToChar(res$content))
+  
+  if (length(res$content) > 2){
+    while(length(res$content) > 2){
+      pageIndex <- pageIndex + 1
+      queryIndex <- append(query, list(page=pageIndex))
+      res = GET(url, query = queryIndex)
+      newData <- fromJSON(rawToChar(res$content))
+      
+      annualEmissData <- rbind(annualEmissData, newData)
+    }
+  }
+  else(return(NULL))
+  annualEmissData
+}
+
+get_facility_data <- function(years){
+  pageIndex <- 1
+  perPage <- 1000
+  
+  url <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes?api_key=",apiKEY)
+  query <- list(year=(paste0(years, collapse = '|')),
+                perPage=as.character(perPage))
+  
+  queryIndex <- append(query, list(page=pageIndex))
+  
+  res = GET(url, query = queryIndex)
+  yearFacilityData <- fromJSON(rawToChar(res$content))
+  
+  if (length(res$content) > 2){
+    while(length(res$content) > 2){
+      pageIndex <- pageIndex + 1
+      queryIndex <- append(query, list(page=pageIndex))
+      res = GET(url, query = queryIndex)
+      newData <- fromJSON(rawToChar(res$content))
+      # Some columns are missing in early data
+      # this fills missing columns with NULL
+      if (length(names(newData)) != length(names(yearFacilityData))){
+        yearFacilityData[names(newData)[!(names(newData) %in% names(yearFacilityData))]] <- NA
+      }
+      yearFacilityData <- rbind(yearFacilityData, fromJSON(rawToChar(res$content)))
+    }
+  }
+  else{retun(NULL)}
+  yearFacilityData
 }
 
 #facilityData <- get_facility_data(1995,get_latest_valid_vear(facilitiesUrl))
 
+# API calls to get compliance data
+# format queryList - list(stateCode = paste0(c("AL"), collapse = '|'),programCodeInfo = paste0(c("ARP"), collapse = '|'))
+# where states is a c() vector of elements
+get_allow_comp_data <- function(complianceYears, programs=NULL, 
+                                states=NULL, facilities=NULL){
+  pageIndex <- 1
+  perPage <- 1000
+  
+  url <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?api_key=",apiKEY)
+  query <- list(year=(paste0(complianceYears, collapse = '|')),
+                perPage=as.character(perPage))
+  
+  if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
+  if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
+  if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
+  
+  queryIndex <- append(query, list(page=pageIndex))
+  
+  res = GET(url, query = queryIndex)
+  yearComplianceData <- fromJSON(rawToChar(res$content))
+  
+  if (length(res$content) > 2){
+    while(length(res$content) > 2){
+      pageIndex <- pageIndex + 1
+      queryIndex <- append(query, list(page=pageIndex))
+      res = GET(url, query = queryIndex)
+      newData <- fromJSON(rawToChar(res$content))
+      # Some columns are missing in early data
+      # this fills missing columns with NULL
+      if (length(names(newData)) != length(names(yearComplianceData))){
+        yearComplianceData[names(newData)[!(names(newData) %in% names(yearComplianceData))]] <- NA
+      }
+      yearComplianceData <- rbind(yearComplianceData, fromJSON(rawToChar(res$content)))
+    }
+  }
+  else{return(NULL)}
+  yearComplianceData
+}

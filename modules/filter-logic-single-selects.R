@@ -1,11 +1,11 @@
 
-columnFilterUI <- function(id) {
+columnFilterSingleSelectUI <- function(id) {
   ns <- NS(id)
   uiOutput(ns("filter_container"))
 }
 
-columnFilter <- function(input, output, session, df, 
-                         col_num, choice_filter, programIsSingleSelect) {
+columnFilterSingleSelect <- function(input, output, session, df, 
+                                     col_num, choice_filter, isRequired) {
   # This renders a selectInput and only re-renders when the selected data
   # frame changes. (i.e. it doesn't re-render when filters change state.)
   output$filter_container <- renderUI({
@@ -13,31 +13,22 @@ columnFilter <- function(input, output, session, df,
     req(col_num <= ncol(df()))
     
     # Labels are coming from labelConversion in global
-    label <- mulitLabelConversion$label[mulitLabelConversion$columnName == names(df())[[col_num]]]
+    label <- singleLabelConversion$label[singleLabelConversion$columnName == names(df())[[col_num]]]
     
     freezeReactiveValue(input, "filter_value")
-    if (names(df())[[col_num]] == "year"){
-      years <- unique(df()[[col_num]])
-      sliderInput(session$ns("filter_value"), label,
-                  min = min(years), max = max(years),
-                  value = c(min(years),max(years)),step = 1,sep = "")
-    }
-    else if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
-      label <- singleLabelConversion$label[mulitLabelConversion$columnName == "programDescription"]
+    
+    if (isRequired){
       selectizeInput(session$ns("filter_value"), label,
                      choices = sort(unique(df()[,col_num,drop=TRUE])),
                      selected = sort(unique(df()[,col_num,drop=TRUE]))[1],
                      multiple = FALSE)
-      
     }
+    
     else{
       selectizeInput(session$ns("filter_value"), label,
-                  choices = sort(unique(df()[,col_num,drop=TRUE])),
-                  multiple = TRUE, options = list(
-                    'plugins' = list('remove_button'),
-                    'create' = TRUE,
-                    'persist' = FALSE,
-                    maxItems = 5))
+                   choices = append(c("Select All"),sort(unique(df()[,col_num,drop=TRUE]))),
+                   selected = c("Select All"),
+                   multiple = FALSE)
     }
     
   })
@@ -50,39 +41,39 @@ columnFilter <- function(input, output, session, df,
   # experience.)
   observeEvent(choice_filter(), {
     current_values <- input$filter_value
-    if (names(df())[[col_num]] == "year"){
-      updateSliderInput(session, "filter_value",
-                        min = min(sort(unique(c(df()[choice_filter(),col_num,drop=TRUE])))),
-                        max = max(sort(unique(c(df()[choice_filter(),col_num,drop=TRUE]))))
-                        )
+    if (isRequired){
+      updateSelectizeInput(session, "filter_value",
+                           choices = sort(unique(c(current_values, df()[choice_filter(),col_num,drop=TRUE]))),
+                           selected = current_values)
     }
-    else{
-      if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
-        updateSelectizeInput(session, "filter_value",
-                       choices = sort(unique(c(current_values, df()[choice_filter(),col_num,drop=TRUE]))),
-                       selected = current_values)
-      }
-      else{
-        updateSelectizeInput(session, "filter_value",
-                        choices = sort(unique(c(current_values, df()[choice_filter(),col_num,drop=TRUE]))),
-                        selected = current_values
-                        )
-      }
+    else {
+      updateSelectizeInput(session, "filter_value",
+                         choices = append(c("Select All"),sort(unique(c(current_values, df()[choice_filter(),col_num,drop=TRUE])))),
+                         selected = current_values)
     }
   })
   
   return(reactive({input$filter_value}))
 }
 
-columnFilterSetUI <- function(id, column_indexes) {
+columnFilterSingleSelectSetUI <- function(id, column_indexes) {
   ns <- NS(id)
   lapply(as.list(column_indexes), function(i) {
-    columnFilterUI(ns(paste0("col", i)))
+    column(3,
+           columnFilterSingleSelectUI(ns(paste0("col", i)))
+    )
   })
 }
 
-columnFilterSet <- function(input, output, session, 
-                            df, column_indexes, programIsSingleSelect=FALSE) {
+rowFilterSingleSelectSetUI <- function(id, column_indexes) {
+  ns <- NS(id)
+  lapply(as.list(column_indexes), function(i) {
+    columnFilterSingleSelectUI(ns(paste0("col", i)))
+  })
+}
+
+columnFilterSingleSelectSet <- function(input, output, session, 
+                            df, column_indexes, isRequired=FALSE) {
   
   toReturn <- reactiveValues(data = df, selections = list(), col=list())
   
@@ -100,12 +91,13 @@ columnFilterSet <- function(input, output, session,
   # filters is a list of reactive expressions, each of which is a
   # logical vector of rows to be selected.
   filters <- lapply(column_indexes, function(i) {
-    filter_values <- callModule(columnFilter, paste0("col", i), df, i, 
+    filter_values <- callModule(columnFilterSingleSelect, paste0("col", i), df, i, 
                                 create_choice_filter(which(column_indexes==i)),
-                                programIsSingleSelect)
+                                isRequired)
+    
     # Return a reactive that is a row index of selected rows, according to
     # just this filter. If this filter shouldn't be taken into account
-    # because its col_num is too high, or if there are no values selected,
+    # because its i is too high, or if there are no values selected,
     # just return TRUE to accept all rows.
     reactive({
       if (i > ncol(df())) {
@@ -113,17 +105,15 @@ columnFilterSet <- function(input, output, session,
       } else if (!isTruthy(filter_values())) {
         toReturn$selections[[names(df())[[i]]]] <- filter_values()
         TRUE
+      } else if (filter_values() == "Select All") {
+        toReturn$selections[[names(df())[[i]]]] <- filter_values()
+        TRUE
       } else {
-        if (names(df())[[i]] == "year"){
-          toReturn$selections[[names(df())[[i]]]] <- seq(filter_values()[1],filter_values()[2])
-          df()[,i,drop=TRUE] %in% seq(filter_values()[1],filter_values()[2])
-        }
-        else{
-          toReturn$selections[[names(df())[[i]]]] <- filter_values()
-          df()[,i,drop=TRUE] %in% filter_values()
-        }
+        toReturn$selections[[names(df())[[i]]]] <- filter_values()
+        df()[,i,drop=TRUE] %in% filter_values()
       }
     })
+    
   })
   
   observe({
