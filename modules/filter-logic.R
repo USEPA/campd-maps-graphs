@@ -5,7 +5,9 @@ columnFilterUI <- function(id) {
 }
 
 columnFilter <- function(input, output, session, df, 
-                         col_num, choice_filter, programIsSingleSelect) {
+                         col_num, choice_filter,
+                         clearEvent, columnNumberIndex, 
+                         programIsSingleSelect) {
   # This renders a selectInput and only re-renders when the selected data
   # frame changes. (i.e. it doesn't re-render when filters change state.)
   output$filter_container <- renderUI({
@@ -13,7 +15,14 @@ columnFilter <- function(input, output, session, df,
     req(col_num <= ncol(df()))
     
     # Labels are coming from labelConversion in global
-    label <- mulitLabelConversion$label[mulitLabelConversion$columnName == names(df())[[col_num]]]
+    if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+      label <- singleLabelConversion$label[singleLabelConversion$columnName == "programDescription"]
+      placeholder <- singleLabelConversion$placeholder[singleLabelConversion$columnName == "programDescription"]
+    }
+    else{
+      label <- mulitLabelConversion$label[mulitLabelConversion$columnName == names(df())[[col_num]]]
+    }
+    label <- paste0(columnNumberIndex,". ",label)
     
     freezeReactiveValue(input, "filter_value")
     if (names(df())[[col_num]] == "year"){
@@ -23,11 +32,10 @@ columnFilter <- function(input, output, session, df,
                   value = c(min(years),max(years)),step = 1,sep = "")
     }
     else if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
-      label <- singleLabelConversion$label[mulitLabelConversion$columnName == "programDescription"]
       selectizeInput(session$ns("filter_value"), label,
-                     choices = sort(unique(df()[,col_num,drop=TRUE])),
-                     selected = sort(unique(df()[,col_num,drop=TRUE]))[1],
-                     multiple = FALSE)
+                     choices = NULL,
+                     multiple = FALSE, options = list(
+                       placeholder = placeholder))
       
     }
     else{
@@ -41,6 +49,38 @@ columnFilter <- function(input, output, session, df,
     }
     
   })
+  
+  observe({
+    if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+      updateSelectizeInput(session, "filter_value",
+                           choices = sort(unique(df()[,col_num,drop=TRUE])),
+                           selected = character(0),
+                           server=FALSE)
+      
+    }
+  })
+  
+  observeEvent(clearEvent(),{
+    if (names(df())[[col_num]] == "year"){
+      years <- unique(df()[[col_num]])
+      updateSliderInput(session, "filter_value",
+                  min = min(years), max = max(years),
+                  value = c(min(years),max(years)))
+    }
+    else if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+      updateSelectizeInput(session, "filter_value",
+                           choices = sort(unique(df()[,col_num,drop=TRUE])),
+                           selected = character(0),
+                           server=FALSE)
+    }
+    else{
+      updateSelectizeInput(session, "filter_value",
+                           choices = sort(unique(df()[,col_num,drop=TRUE])),
+                           selected = NULL
+      )
+    }
+    
+  },ignoreInit = TRUE)
   
   # When the other filters change, update this filter to remove rows that
   # are filtered out by the other filters' criteria. (We also add in the
@@ -82,7 +122,9 @@ columnFilterSetUI <- function(id, column_indexes) {
 }
 
 columnFilterSet <- function(input, output, session, 
-                            df, column_indexes, programIsSingleSelect=FALSE) {
+                            df, column_indexes, clearEvent,
+                            startIndexAdd=0,
+                            programIsSingleSelect=FALSE) {
   
   toReturn <- reactiveValues(data = df, selections = list(), col=list())
   
@@ -100,8 +142,12 @@ columnFilterSet <- function(input, output, session,
   # filters is a list of reactive expressions, each of which is a
   # logical vector of rows to be selected.
   filters <- lapply(column_indexes, function(i) {
+    
+    columnNumberIndex <- match(i,column_indexes)+startIndexAdd
+    
     filter_values <- callModule(columnFilter, paste0("col", i), df, i, 
                                 create_choice_filter(which(column_indexes==i)),
+                                clearEvent, columnNumberIndex, 
                                 programIsSingleSelect)
     # Return a reactive that is a row index of selected rows, according to
     # just this filter. If this filter shouldn't be taken into account

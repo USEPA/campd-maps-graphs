@@ -1,3 +1,4 @@
+
 dataTableUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -15,12 +16,15 @@ dataTableSever <- function(input, output, session,
     )
   })
   
+  
   output$tableDisplay <- renderDataTable( 
     tableData,
+    rownames = FALSE,
     extensions = 'Buttons',
-    options = list(pageLength = 10,
+    options = list(
+                   pageLength = 10,
                    scrollX = TRUE,
-                   dom = 'tB',
+                   dom = 'Bftsp',
                    buttons = list(list(extend = "copy", 
                                        text = "Copy Table"),
                                   list(extend = "csv", 

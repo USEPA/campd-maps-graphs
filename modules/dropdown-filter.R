@@ -3,17 +3,25 @@ dropdownSelectUI <- function(id, label, placeholder_label, choices) {
   tagList(
     selectizeInput(ns("dropselection"), 
                 label, choices, 
-                options = list(placeholder = paste0('--Select ',placeholder_label,'--'),
+                options = list(placeholder = placeholder_label,
                                onInitialize = I('function() { this.setValue(""); }')),
                 multiple = FALSE)
   )
 }
 
 dropdownSelectServer <- function(input, output, session, df, 
-                                 columnToFilter
-                                 ) {
+                                 columnToFilter,clearEvent) {
   
   toReturn <- reactiveValues(selections=NULL, data=df)
+  
+  observeEvent(clearEvent(), {
+    print("is clearing")
+    updateSelectizeInput(
+      session = session,
+      inputId = 'dropselection',
+      selected=character(0))
+    toReturn$data <- df()
+  },ignoreInit = TRUE)
   
   selection <- reactive({
     #validate(need(input$dropselection, FALSE))

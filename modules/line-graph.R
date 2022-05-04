@@ -10,6 +10,14 @@ lineGraphSever <- function(input, output, session,
                            df, xVals, yVals, group, graphTitle, 
                            xtitle, ytitle, hoverText, xAxisIsYears=FALSE){
   
+  m <- list(
+    l = 20,
+    r = 20,
+    b = 20,
+    t = 50,
+    pad = 20
+  )
+  
   colorPalette = c("black",
                    "orange",
                    "plum",
@@ -20,17 +28,21 @@ lineGraphSever <- function(input, output, session,
     
     fig <- plot_ly(df, x = ~df[[xVals]], y = ~df[[yVals]], 
                    color = ~df[[group]], colors = colorPalette, 
-                   
-                   mode = 'lines+markers',hovertemplate=hoverText)%>%#, linetype = ~df[[group]])%>%
-      add_markers(symbol=~df[[group]],showlegend = FALSE,size = 10) %>% 
-      add_lines() %>%
-      layout(title=paste(strwrap(graphTitle,width = 50),collapse = "\n"),
+                   text = hoverText,
+                   hoverinfo = "text", 
+                   symbol = ~df[[group]],
+                   marker = list(size = 8),
+                   type = "scatter",
+                   mode = "lines+markers") %>%
+      layout(title=paste(strwrap(graphTitle, width = 50),collapse = "\n"),
              xaxis = list(title = xtitle, 
                           tickangle=-45),
              yaxis = list(title = ytitle, 
                           range = list(0, (max(df[[yVals]])*1.1)),
                           tickformat=",d", 
-                          tickangle=-45)
+                          tickangle=-45),
+             margin = m,
+             showlegend=TRUE
              )
     
     if (xAxisIsYears){

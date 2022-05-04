@@ -25,14 +25,18 @@ noxOzonePrograms <- c("CSOSG1",
                       "CSOSG2",
                       "CSOSG3")
 
-state_budgets <- read.csv("./globals/csapr-state-assurance-levels.csv")
 state_budgets <- merge(state_budgets, currentCompliancePrograms[,c("programCode","programDescription")],by="programCode",all.x=TRUE)
 state_budgets <- merge(state_budgets, states[,c("stateCode","stateName")],by="stateName",all.x=TRUE)
 
-programBudgetFilterIndicesState <- match(c("programDescription","year")
+programBudgetFilterIndicesState <- match(c("programDescription","year","assuranceFlag")
                                          ,names(state_budgets))
 
 latest_compliance_csapr <- max(na.omit(unlist(currentCompliancePrograms[grep("^CS", currentCompliancePrograms$programCode),]$emissionYears)))
+csaprG3LateYear <- max(state_budgets$year[state_budgets$programCode == "CSOSG3"])
+
+if (csaprG3LateYear > latest_compliance_csapr){
+  state_budgets <- anti_join(state_budgets, subset(state_budgets, programCode == "CSOSG3" & year == csaprG3LateYear))
+}
 
 if (max(state_budgets$year) < latest_compliance_csapr){
   budgetsToCopy <- state_budgets[state_budgets$year == max(state_budgets$year) & state_budgets$programCode != "CSOSG3",]

@@ -3,7 +3,12 @@ packages:
   - packages:
     - name: dotenv
     - name: shiny
+    - name: shinyBS
+    - name: shinydashboard
     - name: shinybusy
+    - name: shinyjs
+    - name: shinyWidgets
+    - name: sf
     - name: leaflet
     - name: leaflet.extras
     - name: plotly

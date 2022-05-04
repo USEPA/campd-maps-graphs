@@ -4,23 +4,28 @@ allowancesBankedUI <- function(id) {
   ns <- NS(id)
   tagList(
     fluidPage(
+      tags$head(HTML("<title>Allowance Trends</title>")), 
       add_busy_spinner(
         spin = "half-circle",
         color = "#112446",
         timeout = 100,
-        position = c("top-left"),
+        position = c("top-right"),
         onstart = TRUE,
         margins = c(10, 10),
         height = "50px",
         width = "50px"
       ),
-      titlePanel("Allowance Bank"),
+      h1("Allowance Trends"),
       fluidRow(
-        column(10, textOutput(ns("allowanceBankText"))),
-        column(2, actionButton(ns("stopanimation"), "Stop Animation"))),
+        column(12, p("This tool uses annual compliance data to visualize historical 
+    trends in allowances allocated, deducted, and banked for active 
+    allowance trading programs operated by EPA's Clean Air Markets Division.")),
+        #column(2, actionButton(ns("stopanimation"), "Stop Animation"))
+        ),
       sidebarLayout(
-      sidebarPanel(h3("Filters"), 
-                   radioButtons(ns("levelOfAnalysis"), "Level of Analysis",
+      sidebarPanel(
+        h2("Filters"), 
+                   radioButtons(ns("levelOfAnalysis"), "1. Level of Analysis",
                                 c("Program"="p", 
                                   "State"="s"),
                                 selected = "p"
@@ -28,8 +33,8 @@ allowancesBankedUI <- function(id) {
                    conditionalPanel(
                      condition = "input.levelOfAnalysis == 'p'", ns = ns,
                      dropdownSelectUI(ns("programInput"), 
-                                      label= singleLabelConversion$label[singleLabelConversion$columnName == "programDescription"],
-                                      placeholder_label= "a program",
+                                      label= paste0("2. ",singleLabelConversion$label[singleLabelConversion$columnName == "programDescription"]),
+                                      placeholder_label= "program",
                                       choices= sort(uniquePrograms))
                      ),
                    conditionalPanel(
@@ -39,8 +44,9 @@ allowancesBankedUI <- function(id) {
                                        )
                               
                      ),
-                   actionButton(ns("previewButton"), "Preview Data")
-                   ),
+        actionButton(ns("clearFilters"), "Clear Filters"),
+        actionButton(ns("previewButton"), "Preview Data")
+        ),
       mainPanel(
         uiOutput(ns("programPlots")),
         )
@@ -52,9 +58,6 @@ allowancesBankedUI <- function(id) {
 
 
 allowancesBankedServer <- function(input, output, session) {
-  output$allowanceBankText <- renderText({
-    "Use this tool to..."
-  })
   observeEvent(input$stopanimation, {
     stop_gif()
   })
@@ -67,6 +70,8 @@ allowancesBankedServer <- function(input, output, session) {
   filterSetReturn <- callModule(columnFilterSet, "filterset", 
                                 df = selectedDataSet, 
                                 allowanceBankFilterIndicesState,
+                                reactive(c(input$clearFilters)),
+                                startIndexAdd = 1,
                                 programIsSingleSelect=TRUE)
     
   filterSingleReturn <- callModule(dropdownSelectServer,"programInput",
@@ -98,15 +103,32 @@ allowancesBankedServer <- function(input, output, session) {
     programsSelected <- currentCompliancePrograms$programCode[currentCompliancePrograms$programDescription %in% 
                                               choices$programsSelected]
     statesSelected <- states$stateCode[states$stateName %in% choices$statesSelected]
-      
-    if (length(programsSelected) > 0){
-      complianceYears <- currentCompliancePrograms[currentCompliancePrograms$programCode %in% 
-                                                     programsSelected,]$complianceYears
-      minimumYear <- min(unlist(complianceYears))
-      maximumYear <- max(unlist(complianceYears))
+    
+    if (length(programsSelected) == 0){
+      showModal(modalDialog(
+        title = "Input missing",
+        "Please make a state and program selection.",
+        easyClose = TRUE
+      ))
+      return()
     }
+    
+    complianceYears <- currentCompliancePrograms[currentCompliancePrograms$programCode %in%
+                                                   programsSelected,]$complianceYears
+    minimumYear <- min(unlist(complianceYears))
+    maximumYear <- max(unlist(complianceYears))
+    
+    # Get everything aggregated to the state and
+    #   fix allowances per csapr and arp
+    
+    csaprAllocations <- unique(subset(state_budgets, select = -c(assuranceFlag, variabilityLimit, assuranceLevel, programDescription)))
+    
+    csaprAllocations <- csaprAllocations[csaprAllocations$programCode %in% programsSelected & 
+                                           csaprAllocations$year <= latestComplianceYear,]
+    
+    
     if (input$levelOfAnalysis == "s"){
-      if (length(programsSelected) == 0 || length(statesSelected) == 0 ){
+      if (length(statesSelected) == 0){
         showModal(modalDialog(
           title = "Input missing",
           "Please make a state and program selection.",
@@ -118,7 +140,21 @@ allowancesBankedServer <- function(input, output, session) {
       facilityComplianceData <- get_allow_comp_data(
         complianceYears = seq(minimumYear,maximumYear),
         programs = programsSelected, states = statesSelected)
-        
+      
+      aggregatedComplianceData <- getStatePlotData(facilityComplianceData,
+                                                   c("allocated", 
+                                                     "totalAllowancesDeducted",
+                                                     "carriedOver"))
+      
+      if (programsSelected %in% unique(state_budgets$programCode)){
+        aggregatedComplianceData <- merge(csaprAllocations[,c("stateName","programCode","year","allocated")],
+              subset(aggregatedComplianceData, select =-c(allocated) ),
+              by=c("stateName","programCode","year"))
+      }
+      
+      # order for scatter plot
+      aggregatedComplianceData <- aggregatedComplianceData[order(aggregatedComplianceData$year),]
+      
       output$programPlots <- renderUI({
         tagList(
           tabsetPanel(type = "tabs",
@@ -135,31 +171,32 @@ allowancesBankedServer <- function(input, output, session) {
           )
         )
       })
-        
-      aggregatedComplianceData <- getStatePlotData(facilityComplianceData,
-                                                   c("allocated", 
-                                                     "totalAllowancesDeducted",
-                                                     "carriedOver"))
       
       callModule(lineGraphSever, "allocatedPlot", 
-                 df=aggregatedComplianceData, xVals='year', yVals='allocated',
+                 df=aggregatedComplianceData, xVals='year', yVals='allocated', 
                  group='stateName', graphTitle="Allowances Allocated", 
                  xtitle="Years", ytitle="Number of Allowances", 
-                 hoverText=paste('Allowances: %{y}','<br>Year: %{x}'),
+                 hoverText=paste("Program: ", aggregatedComplianceData$programCode,
+                                 "<br>Allocated: ", aggregatedComplianceData$allocated,
+                                 "<br>Year: ", aggregatedComplianceData$year),
                  xAxisIsYears=TRUE)
         
       callModule(lineGraphSever, "deductedPlot", 
                  df=aggregatedComplianceData, xVals='year', yVals='totalAllowancesDeducted', 
                  group='stateName', graphTitle="Allowances Deducted", 
                  xtitle="Years", ytitle="Number of Allowances", 
-                 hoverText=paste('Allowances: %{y}','<br>Year: %{x}'),
+                 hoverText=paste("Program: ", aggregatedComplianceData$programCode,
+                                 "<br>Allocated: ", aggregatedComplianceData$totalAllowancesDeducted,
+                                 "<br>Year: ", aggregatedComplianceData$year),
                  xAxisIsYears=TRUE)
         
       callModule(lineGraphSever, "carriedPlot", 
                  df=aggregatedComplianceData, xVals='year', yVals='carriedOver',
                  group='stateName', graphTitle="Allowances Banked", 
                  xtitle="Years", ytitle="Number of Allowances", 
-                 hoverText=paste('Allowances: %{y}','<br>Year: %{x}'),
+                 hoverText=paste("Program: ", aggregatedComplianceData$programCode,
+                                 "<br>Allocated: ", aggregatedComplianceData$carriedOver,
+                                 "<br>Year: ", aggregatedComplianceData$year),
                  xAxisIsYears=TRUE)
         
       tableData <- data.frame(stateName=aggregatedComplianceData$stateName, 
@@ -196,25 +233,42 @@ allowancesBankedServer <- function(input, output, session) {
           )
         })
       
+      
+      
       complianceColumns <- c("allocated", 
                              "totalAllowancesDeducted",
                              "carriedOver")
+      
       rowDisplayColumnNames <- tableLabelConversion$label[match(complianceColumns,tableLabelConversion$columnName)]
-        
+      
       tableData <- getProgramTableData(facilityComplianceData, 
-                                              complianceColumns)
+                                       complianceColumns)
+      
+      if (programsSelected %in% unique(state_budgets$programCode)){
+        programDF <- csaprAllocations[csaprAllocations$programCode == programsSelected,]
+        aggregatedAllocationsProgramDF <- aggregate(allocated~year+programCode,data=programDF,sum)
+        
+        tableData <- merge(aggregatedAllocationsProgramDF[,c("programCode","year","allocated")],
+                                          subset(tableData, select =-c(allocated) ),
+                                          by=c("programCode","year"))
+      }
       
       names(tableData) <- tableLabelConversion$label[match(names(tableData), 
                                                            tableLabelConversion$columnName)]
       
       programPlotData <- getPlotDataByColumns(tableData,rowDisplayColumnNames)
       
+      # order for scatter plot
+      programPlotData <- programPlotData[order(programPlotData$Year),]
+      
       callModule(lineGraphSever, "programPlot", 
                  df=programPlotData, xVals='Year', yVals='Value',
                  group='Category', graphTitle=paste0(choices$programsSelected,
                                                      " Allowance Information"),
                  xtitle="Years", ytitle="Number of Allowances", 
-                 hoverText=paste('Allowances: %{y}','<br>Year: %{x}'),
+                 hoverText=paste("Category: ", programPlotData$Category,
+                                 "<br>Value: ", programPlotData$Value,
+                                 "<br>Year: ", programPlotData$Year),
                  xAxisIsYears=TRUE)
     }
     

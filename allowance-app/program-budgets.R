@@ -4,28 +4,50 @@ programBudgetsUI <- function(id){
   ns <- NS(id)
   tagList(
     fluidPage(
+      tags$head(HTML("<title>Program Budgets</title>")), 
       add_busy_spinner(
         spin = "half-circle",
         color = "#112446",
         timeout = 100,
-        position = c("top-left"),
+        position = c("top-right"),
         onstart = TRUE,
         margins = c(10, 10),
         height = "50px",
         width = "50px"
       ),
-      titlePanel("Program Budgets"),
-      fluidRow(
-        column(10, textOutput(ns("programBugetsText"))),
-        column(2, actionButton(ns("stopanimation"), "Stop Animation"))),
+      h1("Program Budgets"),
+      fluidRow(column(12, 
+                      tags$ul(
+                        tags$li("Use this tool to map annual state allowance budgets
+                                allocated against annual emissions of facilities within
+                                a particular state for each allowance trading program."),
+                        tags$li('Data is mapped as an Allowance-Emission ratio. 
+                                For example, a state with a ratio of 1.5 in 
+                                2018 was budgeted 1.5 allowances for every ton 
+                                of emissions they emitted in 2018.'),
+                        tags$li('States with higher ratios (<insert color scheme>) 
+                                have reduced emissions below their budgets and 
+                                use less allowances to meet compliance.'),
+                        tags$li('Explore Allowance-Emission ratios and 
+                                breakdowns by hovering over individual states.'),
+                        tags$li('CSAPR Programs include a mechanism called 
+                                "Assurance Provisions" which ensure emission 
+                                reduction within each individual state. These 
+                                provisions add a variable limit to each state 
+                                budget.'),
+                        tags$li('For more information visit the',
+                        tags$a(href="https://www.epa.gov/csapr/csapr-assurance-provision", 
+                                       "CSAPR Assurance Provisions page",
+                               target="_blank"),
+                                ".")
+                      )),
+               #column(2, actionButton(ns("stopanimation"), "Stop Animation"))
+      ),
       sidebarLayout(
-        sidebarPanel(h3("Filters"),
-                     rowFilterSingleSelectSetUI(ns("filterset"), programBudgetFilterIndicesState),
-                     selectizeInput(ns("assuranceLevel"), 
-                                    "Include Assurance Level (required)", choices=c("Yes","No"), 
-                                    options = list(placeholder = paste0('--Select y/n--'),
-                                                   onInitialize = I('function() { this.setValue(""); }')),
-                                    multiple = FALSE),
+        sidebarPanel(h2("Filters"),
+                     rowFilterPlaceholderSingleSelectSetUI(ns("filterset"), programBudgetFilterIndicesState),
+                     
+                     actionButton(ns("clearFilters"), "Clear Filters"),
                      actionButton(ns("previewButton"), "Preview Data")
                      ),
         mainPanel(
@@ -38,41 +60,35 @@ programBudgetsUI <- function(id){
 }
 
 programBudgetsServer <- function(input, output, session) {
-  output$programBugetsText <- renderText({
-    "Use this tool to..."
-  })
+  
   observeEvent(input$stopanimation, {
     stop_gif()
   })
   
   budgetDataFrame <- reactive({state_budgets})
   
-  filtered_data <- callModule(columnFilterSingleSelectSet, 
+  filtered_data <- callModule(columnFilterPlaceholderSingleSelectSet, 
                               "filterset", 
                               df = budgetDataFrame, 
                               programBudgetFilterIndicesState,
-                              isRequired=TRUE)
+                              reactive(c(input$clearFilters)))
   
   choices <- reactiveValues(selectedProgram=NULL,
                             selectedYear=NULL,
                             selectedAssuranceInclude=NULL)
   
   observeEvent(filtered_data$selections,{
-    if (as.integer(filtered_data$selections[["year"]])<2017){
-      updateSelectizeInput(session, "assuranceLevel",
-                           choices = c("No"),
-                           selected = "No")
-    }
-    else {
-      currentSelection <- input$assuranceLevel
-      updateSelectizeInput(session, "assuranceLevel",
-                           choices = c("Yes","No"),
-                           selected = currentSelection)
+    if (filtered_data$selections[["year"]]=="" | 
+        filtered_data$selections[["programDescription"]]=="" | 
+        filtered_data$selections[["assuranceFlag"]]==""){
+      return()
     }
   },ignoreInit = TRUE)
   
   observeEvent(input$previewButton,{
-    if (input$assuranceLevel == ""){
+    if (filtered_data$selections[["year"]]=="" | 
+        filtered_data$selections[["programDescription"]]=="" | 
+        filtered_data$selections[["assuranceFlag"]]==""){
       showModal(modalDialog(
         title = "Input missing",
         "Please make an assurance level selection.",
@@ -83,7 +99,7 @@ programBudgetsServer <- function(input, output, session) {
     
     programCodeSelect <- currentCompliancePrograms$programCode[currentCompliancePrograms$programDescription == filtered_data$selections[["programDescription"]]]
     yearSelect <- as.integer(filtered_data$selections[["year"]])
-    assuranceIncluded <- input$assuranceLevel
+    assuranceIncluded <- filtered_data$selections[["assuranceFlag"]]
     
     if (programCodeSelect %in% c(noxAnnualPrograms, so2AnnualPrograms)){
       emissionsData <- get_annual_emiss_data(emissionYears = c(yearSelect), programs = c(programCodeSelect))
@@ -98,7 +114,7 @@ programBudgetsServer <- function(input, output, session) {
                              y=state_budgets,
                              by=c("stateCode", "year", "programCode"))
     
-    if (assuranceIncluded == "Yes"){
+    if (assuranceIncluded == "yes"){
       budgetData <- budgetEmissions %>% 
         mutate(allowEmissRatio = if_else((programCode %in% so2AnnualPrograms), 
                                          assuranceLevel/ceiling(so2Mass),
@@ -112,19 +128,42 @@ programBudgetsServer <- function(input, output, session) {
     else{
       budgetData <- budgetEmissions %>% 
         mutate(allowEmissRatio = if_else((programCode %in% so2AnnualPrograms), 
-                                         allocations/ceiling(so2Mass),
-                                         allocations/ceiling(noxMass)),
+                                         allocated/ceiling(so2Mass),
+                                         allocated/ceiling(noxMass)),
                excessAllow = if_else((programCode %in% so2AnnualPrograms), 
-                                     allocations - ceiling(so2Mass), 
-                                     allocations - ceiling(noxMass)), 
-               percentExcess = excessAllow/allocations*100)
+                                     allocated - ceiling(so2Mass), 
+                                     allocated - ceiling(noxMass)), 
+               percentExcess = excessAllow/allocated*100)
+    }
+    
+    if (programCodeSelect %in% so2AnnualPrograms){
+      budgetTableData <- budgetData %>% select(year, programCode, stateName, 
+                                               so2Mass, allocated,
+                                               variabilityLimit, assuranceLevel,
+                                               allowEmissRatio, excessAllow,
+                                               percentExcess)
+      hoverText <- paste("<strong>",budgetData$stateName,"</strong>", "<br>", 
+                         "Allocations:", budgetData$allocated, "<br>", 
+                         "Assurance Level:", budgetData$assuranceLevel, "<br>",
+                         "SO2 Emissions:", budgetData$so2Mass, "<br>",
+                         "Excess Allowances:", budgetData$excessAllow, "<br>", 
+                         "Allowance to Emission Ratio:", budgetData$allowEmissRatio, "<br>")
+    }
+    else{
+      budgetTableData <- budgetData %>% select(year, programCode, stateName, 
+                                               noxMass, allocated,
+                                               variabilityLimit, assuranceLevel,
+                                               allowEmissRatio, excessAllow,
+                                               percentExcess)
+      hoverText <- paste(budgetData$stateName, "<br>",
+                         "Allocations:", budgetData$allocated, "<br>", 
+                         "Assurance Level:", budgetData$assuranceLevel, "<br>",
+                         "NOx Emissions:", budgetData$noxMass, "<br>",
+                         "Excess Allowances:", budgetData$excessAllow, "<br>", 
+                         "Allowance to Emission Ratio:", budgetData$allowEmissRatio, "<br>")
     }
     
     output$programBudgetPlot<- renderPlotly({
-      budgetData$hover <- with(budgetData, paste(stateName, "<br>", 
-                                                 "Allocations", allocations, "<br>", 
-                                                 "Assurance Level", assuranceLevel, "<br>",
-                                                 "Excess Allowances", excessAllow, "<br>"))
       
       # specify some map projection/options
       g <- list(
@@ -132,16 +171,19 @@ programBudgetsServer <- function(input, output, session) {
         showcoastlines = F,
         scope = "usa",
         fitbounds = "locations",
-        subunitcolor = "#3399FF",
+        subunitcolor = "#79d2a4",
         projection = list(type = "albers usa")
       )
       
       fig <- plot_geo(budgetData, locationmode = "USA-states", reversescale = T)
       fig <- fig %>% add_trace(
-        z = ~allowEmissRatio, text = ~hover, locations = ~stateCode,
+        z = ~allowEmissRatio, 
+        text = hoverText, 
+        hoverinfo = 'text',
+        locations = ~stateCode,
         color = ~allowEmissRatio, colors = "PuBu"
       )
-      fig <- fig %>% colorbar(title = "Allocations to Emissions Ratio<br>(Allocations/Emissions)")
+      fig <- fig %>% colorbar(title = "Allocations to<br>Emissions Ratio")
       fig <- fig %>% layout(
         title = "Title<br>(Hover for breakdown)",
         geo = g,
@@ -159,8 +201,10 @@ programBudgetsServer <- function(input, output, session) {
       fig
     })
     
+    names(budgetTableData) <- tableLabelConversion$label[match(names(budgetTableData), 
+                                                         tableLabelConversion$columnName)]
     callModule(dataTableSever,"budgetsTable", 
-               "Summary Data Table", budgetData)
+               "Summary Data Table", unique(budgetTableData))
     
   })
 }
