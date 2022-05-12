@@ -1,6 +1,7 @@
 ### UI
 source('./allowance-app/allowances-banked.R')
 source('./allowance-app/program-budgets.R')
+source('./allowance-app/resources.R')
 
 programAppUI <- function(id){
   ns <- NS(id)
@@ -12,6 +13,9 @@ programAppUI <- function(id){
                tabPanel("Program Budgets",
                         programBudgetsUI(ns("programBudgetsTab"))
                ),
+               tabPanel("Resources",
+                        resourcesUI(ns("resourcesTab"))
+               ),
     )
   )
 }
@@ -19,6 +23,7 @@ programAppUI <- function(id){
 programAppServer <- function(input, output, session) {
   callModule(allowancesBankedServer, "allowancesBankedTab")
   callModule(programBudgetsServer, "programBudgetsTab")
+  callModule(resourcesServer, "resourcesTab")
 }
 
 

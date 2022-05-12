@@ -47,8 +47,10 @@ programBudgetsUI <- function(id){
         sidebarPanel(h2("Filters"),
                      rowFilterPlaceholderSingleSelectSetUI(ns("filterset"), programBudgetFilterIndicesState),
                      
-                     actionButton(ns("clearFilters"), "Clear Filters"),
-                     actionButton(ns("previewButton"), "Preview Data")
+                     div(class="clear-preview-btns",
+                         actionButton(ns("clearFilters"), "Clear Filters"),
+                         actionButton(ns("previewButton"), "Preview Data")
+                     )
                      ),
         mainPanel(
           plotlyOutput(ns("programBudgetPlot"))
@@ -77,27 +79,19 @@ programBudgetsServer <- function(input, output, session) {
                             selectedYear=NULL,
                             selectedAssuranceInclude=NULL)
   
-  observeEvent(filtered_data$selections,{
-    if (filtered_data$selections[["year"]]=="" | 
-        filtered_data$selections[["programDescription"]]=="" | 
-        filtered_data$selections[["assuranceFlag"]]==""){
-      return()
-    }
-  },ignoreInit = TRUE)
-  
   observeEvent(input$previewButton,{
     if (filtered_data$selections[["year"]]=="" | 
-        filtered_data$selections[["programDescription"]]=="" | 
+        filtered_data$selections[["programCode"]]=="" | 
         filtered_data$selections[["assuranceFlag"]]==""){
       showModal(modalDialog(
         title = "Input missing",
-        "Please make an assurance level selection.",
+        "Please make a program, year, and assurance level selection.",
         easyClose = TRUE
       ))
       return()
     }
     
-    programCodeSelect <- currentCompliancePrograms$programCode[currentCompliancePrograms$programDescription == filtered_data$selections[["programDescription"]]]
+    programCodeSelect <- filtered_data$selections[["programCode"]]
     yearSelect <- as.integer(filtered_data$selections[["year"]])
     assuranceIncluded <- filtered_data$selections[["assuranceFlag"]]
     
@@ -203,8 +197,13 @@ programBudgetsServer <- function(input, output, session) {
     
     names(budgetTableData) <- tableLabelConversion$label[match(names(budgetTableData), 
                                                          tableLabelConversion$columnName)]
+    filename <- paste0("program-budgets-",programCodeSelect,
+                       "-",as.character(yearSelect),"-assurance-included-",assuranceIncluded,
+                       ".csv")
+    
     callModule(dataTableSever,"budgetsTable", 
-               "Summary Data Table", unique(budgetTableData))
+               "Summary Data Table", unique(budgetTableData), 
+               filename)
     
   })
 }

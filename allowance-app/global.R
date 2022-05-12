@@ -12,10 +12,10 @@ applicableAllowCompTable = merge(x=applicableAllowCompTable,
            y=states[,c("stateCode","stateName")],
            by="stateCode",all.x=TRUE)
 
-uniquePrograms <- unique(applicableAllowCompTable$programDescription)
+uniquePrograms <- unique(applicableAllowCompTable$programCode)
 uniqueStates <- unique(applicableAllowCompTable$stateName)
 
-allowanceBankFilterIndicesState <- match(c("programDescription","stateName")
+allowanceBankFilterIndicesState <- match(c("programCode","stateName")
                                          ,names(applicableAllowCompTable))
 
 noxAnnualPrograms <- c("CSNOX")
@@ -28,7 +28,7 @@ noxOzonePrograms <- c("CSOSG1",
 state_budgets <- merge(state_budgets, currentCompliancePrograms[,c("programCode","programDescription")],by="programCode",all.x=TRUE)
 state_budgets <- merge(state_budgets, states[,c("stateCode","stateName")],by="stateName",all.x=TRUE)
 
-programBudgetFilterIndicesState <- match(c("programDescription","year","assuranceFlag")
+programBudgetFilterIndicesState <- match(c("programCode","year","assuranceFlag")
                                          ,names(state_budgets))
 
 latest_compliance_csapr <- max(na.omit(unlist(currentCompliancePrograms[grep("^CS", currentCompliancePrograms$programCode),]$emissionYears)))
