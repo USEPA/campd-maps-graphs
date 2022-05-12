@@ -21,7 +21,7 @@ lineGraphSever <- function(input, output, session,
   colorPalette = c("black",
                    "orange",
                    "plum",
-                   "yellow",
+                   "darkgreen",
                    "blue")
   
   output$linePlot <- renderPlotly({

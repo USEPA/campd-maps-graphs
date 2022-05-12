@@ -15,7 +15,7 @@ columnFilter <- function(input, output, session, df,
     req(col_num <= ncol(df()))
     
     # Labels are coming from labelConversion in global
-    if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+    if (programIsSingleSelect & (names(df())[[col_num]] %in% c("programDescription","programCode"))){
       label <- singleLabelConversion$label[singleLabelConversion$columnName == "programDescription"]
       placeholder <- singleLabelConversion$placeholder[singleLabelConversion$columnName == "programDescription"]
     }
@@ -31,7 +31,7 @@ columnFilter <- function(input, output, session, df,
                   min = min(years), max = max(years),
                   value = c(min(years),max(years)),step = 1,sep = "")
     }
-    else if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+    else if (programIsSingleSelect & (names(df())[[col_num]] %in% c("programDescription","programCode"))){
       selectizeInput(session$ns("filter_value"), label,
                      choices = NULL,
                      multiple = FALSE, options = list(
@@ -51,7 +51,7 @@ columnFilter <- function(input, output, session, df,
   })
   
   observe({
-    if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+    if (programIsSingleSelect & (names(df())[[col_num]] %in% c("programDescription","programCode"))){
       updateSelectizeInput(session, "filter_value",
                            choices = sort(unique(df()[,col_num,drop=TRUE])),
                            selected = character(0),
@@ -67,7 +67,7 @@ columnFilter <- function(input, output, session, df,
                   min = min(years), max = max(years),
                   value = c(min(years),max(years)))
     }
-    else if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+    else if (programIsSingleSelect & (names(df())[[col_num]] %in% c("programDescription","programCode"))){
       updateSelectizeInput(session, "filter_value",
                            choices = sort(unique(df()[,col_num,drop=TRUE])),
                            selected = character(0),
@@ -97,7 +97,7 @@ columnFilter <- function(input, output, session, df,
                         )
     }
     else{
-      if (programIsSingleSelect & (names(df())[[col_num]] == "programDescription")){
+      if (programIsSingleSelect & (names(df())[[col_num]] %in% c("programDescription","programCode"))){
         updateSelectizeInput(session, "filter_value",
                        choices = sort(unique(c(current_values, df()[choice_filter(),col_num,drop=TRUE]))),
                        selected = current_values)

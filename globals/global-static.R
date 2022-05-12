@@ -5,12 +5,14 @@ apiKEY <- Sys.getenv("API_KEY")
 
 # table to convert column name to appropriate lables for UI
 mulitLabelConversion <- data.frame(columnName=c("programDescription", 
+                                                "programCode", 
                                                 "stateName", 
                                                 "unitTypeGroupDescription", 
                                                 "fuelGroupDescription", 
                                                 "controlEquipParamDescription", 
                                                 "year"), 
                                    label=c("Select up to 5 Regulatory Programs",
+                                           "Select up to 5 Regulatory Programs",
                                            "Select up to 5 States (required)",
                                            "Select up to 5 Unit Types",
                                            "Select up to 5 Fuel Types",

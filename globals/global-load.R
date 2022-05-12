@@ -119,6 +119,11 @@ allLatestEmissionYears <- lapply(currentCompliancePrograms$programCode, function
 
 latestEmissionsYear <- min(na.omit(unlist(allLatestEmissionYears)))
 
+# Get compliance data for ARP
+'arpComplianceData <- get_allow_comp_data(unlist(currentCompliancePrograms[currentCompliancePrograms$programCode %in%
+                                                                     c("ARP"),]$complianceYears),
+                                         programs=c("ARP"))'
+
 # Storing states 
 url <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)
 res = GET(url)

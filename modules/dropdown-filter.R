@@ -10,12 +10,11 @@ dropdownSelectUI <- function(id, label, placeholder_label, choices) {
 }
 
 dropdownSelectServer <- function(input, output, session, df, 
-                                 columnToFilter,clearEvent) {
+                                 columnToFilter, clearEvent) {
   
   toReturn <- reactiveValues(selections=NULL, data=df)
   
   observeEvent(clearEvent(), {
-    print("is clearing")
     updateSelectizeInput(
       session = session,
       inputId = 'dropselection',
