@@ -63,52 +63,28 @@ source("./facility-map-app/page.R")
 source("./facility-map-app/global.R")
 source("./allowance-app/global.R")
 
-
-#timeoutSeconds <- 5
-
-#inactivity <- sprintf("function idleTimer() {
-#  var t = setTimeout(logout, %s);
-#  window.onmousemove = resetTimer; // catches mouse movements
-#  window.onmousedown = resetTimer; // catches mouse movements
-#  window.onclick = resetTimer;     // catches mouse clicks
-#  window.onscroll = resetTimer;    // catches scrolling
-#  window.onkeypress = resetTimer;  //catches keyboard actions
-#  
-#  function logout() {
-#    Shiny.setInputValue('timeOut', '%ss')
-#  }
-#  
-#  function resetTimer() {
-#    clearTimeout(t);
-#    t = setTimeout(logout, %s);  // time is in milliseconds (1000 is 1 second)
-#  }
-#}
-#idleTimer();", timeoutSeconds*1000, timeoutSeconds, timeoutSeconds*1000)
-
-'disconnectMessage(
-      text = "Your session timed out, reload the application.",
-      refresh = "Reload now",
-      background = "#f89f43",
-      colour = "white",
-      overlayColour = "grey",
-      overlayOpacity = 0.3,
-      refreshColour = "brown"
-    ),'
-
 ui <- function(request) {
   fluidPage(
     tags$html(class="CAMPDRShiny"),
     tags$html(lang="en"),
     class="main-page",
     includeCSS("www/app.css"),
+    includeScript('www/script.js'),
     # disconnect
+    disconnectMessage(
+      text = "Your session timed out, reload the application.",
+      refresh = "Reload now",
+      background = "white",
+      colour = "#000000",
+      overlayColour = "#f0f0f0",
+      overlayOpacity = 0.3,
+      refreshColour = "#1a4480"
+    ),
     uiOutput("page")
   )
 }
 
 server <- function(input, output, session) {
-  
-  #session$allowReconnect(TRUE)
   
   programsAppURL <- reactiveVal({""})
   facilityMapURL <- reactiveVal({""})

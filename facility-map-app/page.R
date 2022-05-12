@@ -13,30 +13,7 @@ facilityMapAppUI <- function(id){
     fluidPage(
       useShinyjs(),
       useShinydashboard(),
-      
-      tags$script(HTML(
-        '
-        const minuselements = [...document.getElementsByClassName("fa-minus")];
-        const questionelements = [...document.getElementsByClassName("fa-question")];
-        const elements = minuselements.concat(questionelements);
-        
-        for (let i=0; i < elements.length; i++){
-          elements[i].setAttribute("role", "img");
-        }
-        
-        const expandbuttonelements = [...document.getElementsByClassName("btn-box-tool")];
-        
-        for (let i=0; i < expandbuttonelements.length; i++){
-          expandbuttonelements[i].insertAdjacentText("beforeend", " expand and collapse button ");
-        }
-        
-        $(document).keyup(function(event) {
-            if ($(".leaflet-marker-icon").is(":focus") && (event.key == "Enter")) {
-                event.target.click()
-            }
-        });
-        '
-      )),
+      includeScript('www/map-script.js'),
       
       tags$main(h1("Welcome to the Facility Map!")),
       tags$head(HTML("<title>Facility Map</title>")), 
@@ -63,6 +40,7 @@ facilityMapAppUI <- function(id){
         '"Facility Summary" and "Compliance Summary" expandable boxes, respectively.'),
       div(class="bullet-title","Using the Map"),
       tags$ul(class="intro-list",
+        tags$li('This map refreshes dynamically.'),
         tags$li('Use the state and county search to find facilities near you.'),
         tags$li(class="indent",'If a state is selected first in the search box, the county 
             search will be narrowed down to those in the state. If county is selected first, the state 
@@ -141,20 +119,23 @@ facilityMapAppUI <- function(id){
       fluidRow(absolutePanel(id = "facility-map-panel", 
                              class = "panel panel-default",
                              draggable = TRUE,
-                             box(uiOutput(ns("fac_summary_text")), 
-                                 title = "Facility Summary",  
-                                 collapsible = TRUE, 
-                                 status = "success",
-                                 width = 12),
-                             box(uiOutput(ns("acct_summary_text")), 
-                                 title = "Compliance Summary",  
-                                 collapsible = TRUE, 
-                                 status = "success",
-                                 width = 12)
+                             div(id = "facility-summary-box", 
+                                 box(uiOutput(ns("fac_summary_text")),
+                                     title = "Facility Summary",  
+                                     collapsible = TRUE, 
+                                     status = "primary",
+                                     width = 12)
+                             ),
+                             div(id = "compliance-summary-box", 
+                                 box(uiOutput(ns("acct_summary_text")), 
+                                     title = "Compliance Summary",  
+                                     collapsible = TRUE, 
+                                     status = "primary",
+                                     width = 12)
+                             )
                ),
                leafletOutput(ns("map"),width="100%", height = "500px")
-      ),
-      uiOutput("logoutbtn")
+      )
     )
   )
 }
@@ -406,6 +387,7 @@ facilityMapAppServer <- function(input, output, session) {
   
   # When map is clicked, show a popup with facility info
   observeEvent(input$map_marker_click,{
+    print(input$map_marker_click$id)
     event <- input$map_marker_click
     if (is.null(event)){
       return()
