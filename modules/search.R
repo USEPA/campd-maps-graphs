@@ -70,7 +70,7 @@ searchServer <- function(input,output,session,df,
         session = session,
         inputId = 'search',
         choices = indexDf[indexDf[[filterBy]]==filterVal(),],
-        selected=character(0),
+        selected = character(0),
         server = TRUE)
       dfReact <- df %>%
         rowid_to_column("idx") %>%

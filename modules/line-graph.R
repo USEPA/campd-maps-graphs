@@ -25,6 +25,10 @@ lineGraphSever <- function(input, output, session,
                    "blue")
   
   output$linePlot <- renderPlotly({
+    ymin <- 0
+    if (min(df[[yVals]]) < 0){
+      ymin <- (min(df[[yVals]])*1.1)
+    }
     
     fig <- plot_ly(df, x = ~df[[xVals]], y = ~df[[yVals]], 
                    color = ~df[[group]], colors = colorPalette, 
@@ -38,7 +42,7 @@ lineGraphSever <- function(input, output, session,
              xaxis = list(title = xtitle, 
                           tickangle=-45),
              yaxis = list(title = ytitle, 
-                          range = list(0, (max(df[[yVals]])*1.1)),
+                          range = list(ymin, (max(df[[yVals]])*1.1)),
                           tickformat=",d", 
                           tickangle=-45),
              margin = m,
