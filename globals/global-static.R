@@ -95,37 +95,80 @@ tableLabelConversion <- data.frame(columnName=c("programCode",
                                            "Excess Allowances",
                                            "Percent Excess"))
 
+
+####### CSAPR Budgets #######
+state_budgets <- read.csv("./globals/csapr-state-assurance-levels.csv")
+
+
+# drop these states in shapefiles
+dropStates <- c("American Samoa", "American Samoa", 
+                "Commonwealth of the Northern Mariana Islands",
+                "Guam", "United States Virgin Islands")
+
+####### County Search Data #######
+get_county_search_data <- function(shapefilepath){
+  
+  USA <- st_read(dsn = shapefilepath)
+  
+  countyDF <- USA[,c("STATEFP", "COUNTYNS","NAME","geometry"),]
+  
+  names(countyDF) <- tolower(names(countyDF))
+  names(countyDF)[names(countyDF)=="name"] <- c("countyName")
+  
+  county_sf <- st_as_sf(countyDF)
+  
+  FIPS <- read.csv("./globals/stateFIPS.csv")
+  
+  FIPS$FIPS <- formatC(FIPS$FIPS, width = 2, format = "d", flag = "0", big.mark = "-")
+  
+  countyState <- merge(county_sf, FIPS, by.x="statefp", by.y="FIPS",all.x=TRUE)
+  
+  countyState <- countyState[!(countyState$stateName %in% dropStates),]
+  countyState
+  
+}
+
+countyState <- get_county_search_data("./globals/cb_2018_us_county_5m.shp")
+
+####### State Search Data #######
+get_state_search_data <- function(shapefilepath){
+  USA <- st_read(dsn = shapefilepath)
+  
+  stateDF <- USA[,c("NAME","geometry"),]
+  
+  names(stateDF) <- tolower(names(stateDF))
+  names(stateDF)[names(stateDF)=="name"] <- c("stateName")
+  
+  state_sf <- st_as_sf(stateDF)
+  
+  state_sf <- state_sf[order(state_sf$stateName),]
+  
+  state_sf <- state_sf[!(state_sf$stateName %in% dropStates),]
+  state_sf
+}
+
+state_sf <- get_state_search_data("./globals/cb_2018_us_state_5m.shp")
+
+
 ## global functions
 
 get_annual_emiss_data <- function(emissionYears, programs=NULL, 
                                   unitType=NULL, unitFuelType=NULL, 
                                   states=NULL, facilities=NULL){
-  pageIndex <- 1
-  perPage <- 1000
   
-  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual?api_key=",apiKEY)
-  query <- list(year=(paste0(emissionYears, collapse = '|')),
-                perPage=as.character(perPage))
+  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual/stream?api_key=",apiKEY)
+  query <- list(year=(paste0(emissionYears, collapse = '|')))
+  
   if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
   if (!is.null(unitType)){query <- append(query, list(unitType = (paste0(unitType, collapse = '|'))))}
   if (!is.null(unitFuelType)){query <- append(query, list(unitFuelType = (paste0(fuelType, collapse = '|'))))}
   if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  annualEmissData <- fromJSON(rawToChar(res$content))
+  res = GET(url, query = query)
   
   if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      
-      annualEmissData <- rbind(annualEmissData, newData)
-    }
+    annualEmissData <- fromJSON(rawToChar(res$content))
   }
   else(return(NULL))
   annualEmissData
@@ -134,63 +177,34 @@ get_annual_emiss_data <- function(emissionYears, programs=NULL,
 get_ozone_emiss_data <- function(emissionYears, programs=NULL, 
                                   unitType=NULL, unitFuelType=NULL, 
                                   states=NULL, facilities=NULL){
-  pageIndex <- 1
-  perPage <- 1000
   
-  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone?api_key=",apiKEY)
-  query <- list(year=(paste0(emissionYears, collapse = '|')),
-                perPage=as.character(perPage))
+  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone/stream?api_key=",apiKEY)
+  query <- list(year=(paste0(emissionYears, collapse = '|')))
+  
   if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
   if (!is.null(unitType)){query <- append(query, list(unitType = (paste0(unitType, collapse = '|'))))}
   if (!is.null(unitFuelType)){query <- append(query, list(unitFuelType = (paste0(fuelType, collapse = '|'))))}
   if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  annualEmissData <- fromJSON(rawToChar(res$content))
+  res = GET(url, query = query)
   
   if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      
-      annualEmissData <- rbind(annualEmissData, newData)
-    }
+    annualEmissData <- fromJSON(rawToChar(res$content))
   }
   else(return(NULL))
   annualEmissData
 }
 
 get_facility_data <- function(years){
-  pageIndex <- 1
-  perPage <- 1000
   
-  url <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes?api_key=",apiKEY)
-  query <- list(year=(paste0(years, collapse = '|')),
-                perPage=as.character(perPage))
+  url <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/stream?api_key=",apiKEY)
+  query <- list(year=(paste0(years, collapse = '|')))
   
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  yearFacilityData <- fromJSON(rawToChar(res$content))
+  res = GET(url, query = query)
   
   if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      # Some columns are missing in early data
-      # this fills missing columns with NULL
-      if (length(names(newData)) != length(names(yearFacilityData))){
-        yearFacilityData[names(newData)[!(names(newData) %in% names(yearFacilityData))]] <- NA
-      }
-      yearFacilityData <- rbind(yearFacilityData, fromJSON(rawToChar(res$content)))
-    }
+    yearFacilityData <- fromJSON(rawToChar(res$content))
   }
   else{retun(NULL)}
   yearFacilityData
@@ -203,109 +217,33 @@ get_facility_data <- function(years){
 # where states is a c() vector of elements
 get_allow_comp_data <- function(complianceYears, programs=NULL, 
                                 states=NULL, facilities=NULL){
-  pageIndex <- 1
-  perPage <- 1000
   
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?api_key=",apiKEY)
-  query <- list(year=(paste0(complianceYears, collapse = '|')),
-                perPage=as.character(perPage))
+  url <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/stream?api_key=",apiKEY)
+  query <- list(year=(paste0(complianceYears, collapse = '|')))
   
   if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
   if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  yearComplianceData <- fromJSON(rawToChar(res$content))
+  res = GET(url, query = query)
   
   if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      # Some columns are missing in early data
-      # this fills missing columns with NULL
-      if (length(names(newData)) != length(names(yearComplianceData))){
-        yearComplianceData[names(newData)[!(names(newData) %in% names(yearComplianceData))]] <- NA
-      }
-      yearComplianceData <- rbind(yearComplianceData, fromJSON(rawToChar(res$content)))
-    }
+    yearComplianceData <- fromJSON(rawToChar(res$content))
   }
   else{return(NULL)}
   yearComplianceData
 }
 
-####### CSAPR Budgets #######
-state_budgets <- read.csv("./globals/csapr-state-assurance-levels.csv")
-
-
-# drop these states in shapefiles
-dropStates <- c("American Samoa", "American Samoa", 
-                "Commonwealth of the Northern Mariana Islands",
-                "Guam", "United States Virgin Islands")
-
-####### County Search Data #######
-USA <- st_read(dsn = "./globals/cb_2018_us_county_5m.shp")
-
-countyDF <- USA[,c("STATEFP", "COUNTYNS","NAME","geometry"),]
-
-names(countyDF) <- tolower(names(countyDF))
-names(countyDF)[names(countyDF)=="name"] <- c("countyName")
-
-county_sf <- st_as_sf(countyDF)
-
-FIPS <- read.csv("./globals/stateFIPS.csv")
-
-FIPS$FIPS <- formatC(FIPS$FIPS, width = 2, format = "d", flag = "0", big.mark = "-")
-
-countyState <- merge(county_sf, FIPS, by.x="statefp", by.y="FIPS",all.x=TRUE)
-
-countyState <- countyState[!(countyState$stateName %in% dropStates),]
-
-####### Zip Code Search Data #######
-
-
-####### State Search Data #######
-USA <- st_read(dsn = "./globals/cb_2018_us_state_5m.shp")
-
-stateDF <- USA[,c("NAME","geometry"),]
-
-names(stateDF) <- tolower(names(stateDF))
-names(stateDF)[names(stateDF)=="name"] <- c("stateName")
-
-state_sf <- st_as_sf(stateDF)
-
-state_sf <- state_sf[order(state_sf$stateName),]
-
-state_sf <- state_sf[!(state_sf$stateName %in% dropStates),]
-
-####### functions #######
-
 # API call to get allowance holdings info for a facility
 get_allow_holding_data <- function(facilityId){
-  pageIndex <- 1
-  perPage <- 1000
   
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-holdings?api_key=",apiKEY)
-  query <- list(facilityId=facilityId,
-                perPage=as.character(perPage))
-  res = GET(url, query)
+  url <- paste0(apiUrlBase,"/account-mgmt/allowance-holdings/stream?api_key=",apiKEY)
+  query <- list(facilityId=facilityId)
   
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  holdingData <- fromJSON(rawToChar(res$content))
+  res = GET(url, query = query)
   
   if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      holdingData <- rbind(holdingData, fromJSON(rawToChar(res$content)))
-    }
+    holdingData <- fromJSON(rawToChar(res$content))
   }
   else{return(NULL)}
   aggregate(totalBlock ~ programCodeInfo, 
@@ -315,31 +253,17 @@ get_allow_holding_data <- function(facilityId){
 # API call to get transaction data by a facility
 get_transaction_data <- function(facilityId, transactionBeginDate,
                                  transactionEndDate){
-  pageIndex <- 1
-  perPage <- 1000
   
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-transactions?api_key=",apiKEY)
+  url <- paste0(apiUrlBase,"/account-mgmt/allowance-transactions/stream?api_key=",apiKEY)
   query <- list(transactionBeginDate=transactionBeginDate,
                 transactionEndDate=transactionEndDate,
                 transactionType="Private Transfer",
-                facilityId=facilityId,
-                perPage=as.character(perPage))
+                facilityId=facilityId)
   
-  res = GET(url, query)
-  
-  queryIndex <- append(query, list(page=pageIndex))
-  
-  res = GET(url, query = queryIndex)
-  transactionData <- fromJSON(rawToChar(res$content))
+  res = GET(url, query = query)
   
   if (length(res$content) > 2){
-    while(length(res$content) > 2){
-      pageIndex <- pageIndex + 1
-      queryIndex <- append(query, list(page=pageIndex))
-      res = GET(url, query = queryIndex)
-      newData <- fromJSON(rawToChar(res$content))
-      transactionData <- rbind(transactionData, fromJSON(rawToChar(res$content)))
-    }
+    transactionData <- fromJSON(rawToChar(res$content))
   }
   else{return(NULL)}
   transactionData
@@ -387,19 +311,51 @@ make_transaction_table <- function(transactionData, facilityId){
   transactionTableData
 }
 
-# filter necessary facility data
-filter_facility_att_data <- function(data){
-  fac_data <- data %>% select(stateCode, county, facilityId,
-                              facilityName, year, programCodeInfo,
-                              longitude, latitude, operatingStatus)
-  fac_data = merge(x=fac_data, y=states[,c("stateCode","stateName")],
-                   by="stateCode")
-  fac_data <- unique(fac_data)
+#store functions
+
+# to get all facility data for downloading off of app
+store_facility_data <- function(unitData){
+  unitData <- unitData %>%
+    mutate("SO2 Controls Installed" = case_when(
+      length(na.omit(so2ControlInfo)) != 0 ~ "Yes",
+      length(na.omit(so2ControlInfo)) == 0 ~ "No"
+    ))
+  
+  unitData <- unitData %>%
+    mutate("NOx Controls Installed" = case_when(
+      length(na.omit(noxControlInfo)) != 0 ~ "Yes",
+      length(na.omit(noxControlInfo)) == 0 ~ "No"
+    ))
+  
+  unitData <- unitData %>%
+    mutate("Particulate Matter Controls Installed" = case_when(
+      length(na.omit(pmControlInfo)) != 0 ~ "Yes",
+      length(na.omit(pmControlInfo)) == 0 ~ "No"
+    ))
+  
+  unitData <- unitData %>%
+    mutate("Mercury Controls Installed" = case_when(
+      length(na.omit(hgControlInfo)) != 0 ~ "Yes",
+      length(na.omit(hgControlInfo)) == 0 ~ "No"
+    ))
+  
+  facilityTableForDownload <- unitData[,c("facilityName","facilityId","stateCode",
+                                          "stateName","county",
+                                          "latitude","longitude","unitId","operatingStatus",
+                                          "primaryFuelInfo","SO2 Controls Installed",
+                                          "NOx Controls Installed", 
+                                          "Particulate Matter Controls Installed",
+                                          "Mercury Controls Installed",
+                                          "year")]
+  names(facilityTableForDownload) <- c("Facility Name","Facility Id","State Code",
+                                       "State Name","County",
+                                       "Latitude","Longitude","Unit Id","Operating Status",
+                                       "Primary Fuels","SO2 Controls Installed",
+                                       "NOx Controls Installed", 
+                                       "Particulate Matter Controls Installed",
+                                       "Mercury Controls Installed",
+                                       "Year of Operation")
+  
+  facilityTableForDownload
 }
 
-# filter facility lat/long and state data
-filter_facility_latlong_data <- function(data){
-  fac_data <- data %>% select(stateCode, stateName, county, facilityId,
-                              facilityName, longitude, latitude)
-  fac_data <- unique(fac_data)
-}

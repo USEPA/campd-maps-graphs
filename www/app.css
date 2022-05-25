@@ -6,10 +6,6 @@
   padding: 0;
 }
 
-#ss-reload-link:focus, .leaflet-popup a.leaflet-popup-close-button:focus {
-  border: solid #28a0cb 2px;
-}
-
 body {
   background-color: white;
   color: black; /* text color */
@@ -81,6 +77,15 @@ ul.intro-list {
 
 ul.intro-list li.indent {
   margin-left:25px;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+}
+.grid-item {
+  padding-right: 5px;
+  text-align: center;
 }
 
 /* Banner and Nav bar */
@@ -176,6 +181,7 @@ ul.intro-list li.indent {
 }
 
 #filter-tooltip, #search-tooltip {
+  border-radius: 50%;
   vertical-align: top;
   font-size: 0;
 }
@@ -268,7 +274,6 @@ ul.intro-list li.indent {
 
 div#id-map {
   !important;
-  margin-bottom:5px;
 }
 
 #facility-map-panel {
@@ -296,7 +301,7 @@ div#id-map {
 
 /* --- */
 
-div.leaflet.html-widget.html-widget-output.shiny-bound-output.leaflet-container:focus {
+div.leaflet-container:focus {
   border-width: 5px solid #3d4551;
 }
 
@@ -306,6 +311,19 @@ div.leaflet.html-widget.html-widget-output.shiny-bound-output.leaflet-container:
 }
 
 .marker-cluster div {
+  padding-top: 5px;
   background-color: rgba(204,51,255,0.90);
   color: black;
+}
+
+.marker-cluster span {
+  font-size: 0;
+}
+
+.leaflet-marker-icon img:hover {
+  border-width: 5px solid #3d4551;
+}
+
+#ss-reload-link:focus, .leaflet-popup a.leaflet-popup-close-button:focus {
+  border: solid #28a0cb 2px;
 }

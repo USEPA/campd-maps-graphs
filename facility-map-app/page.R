@@ -1,7 +1,5 @@
 ### UI
 
-cluster_icon <- tags$img(src='cluster-icon.png', width='35px',height='35px')
-
 facilityMapAppUI <- function(id){
   ns <- NS(id)
   tagList(
@@ -27,31 +25,41 @@ facilityMapAppUI <- function(id){
         height = "50px",
         width = "50px"
       ),
-      
       h2("Getting Started"),
-      p(class="intro-text","This facility map uses data collected as part 
-        of EPA's emissions trading programs. If you are interested in 
-        exploring the data further, check out [link-CAMPD]!"),
-      p(class="intro-text","Click on a pin marker",
+      p(class="intro-text","This facility map uses data collected as part of 
+      EPA's allowance trading programs. Interested in exploring the data 
+        further, check out ",
+        tags$a(href="https://campd.epa.gov/data", 
+               "CAMPD's data section",
+               target="_blank"),
+        "!"),
+      p(class="intro-text","Click on a ",
         tags$img(src='https://unpkg.com/leaflet@1.3.1/dist/images/marker-icon-2x.png', 
-                 width='20px',height='35px',alt = "Leaflet marker icon"),
-        "on the map to view a facility's basic information, 
-        as well as its program compliance using the side panel's ",
-        '"Facility Summary" and "Compliance Summary" expandable boxes, respectively.'),
+                 width='20px',height='35px',alt = "facility marker"),
+        " on the map to view a facility's attribute and, 
+        program compliance information using the map's side panel ",
+        '"Facility Summary" and "Compliance Summary" expandable boxes.'),
       div(class="bullet-title","Using the Map"),
       tags$ul(class="intro-list",
-        tags$li('This map refreshes dynamically.'),
+        tags$li("Search and filter options dynamically update the map view 
+                according to inputted selections."),
         tags$li('Use the state and county search to find facilities near you.'),
-        tags$li(class="indent",'If a state is selected first in the search box, the county 
-            search will be narrowed down to those in the state. If county is selected first, the state 
-            search will be narrowed down to the state which the county is in.'),
-        tags$li(class="indent",'Note that the county search is grouped by state.'),
-        tags$li('Use the facility filer to narrow down facilities by program.'),
-        tags$li('Use the clear buttons to clear your filters or searches.'),
-        tags$li('Facility Summary displays basic information about the facility chosen.'),
-        tags$li('Compliance Summary displays compliance 
-                  information for programs applicable to the chosen facility.'),
+        tags$li(class="indent",'Selecting a state first will refine the county 
+                search to only counties within the selected state.'),
+        tags$li(class="indent",'Note that the county search box is grouped by state.'),
+        tags$li('Use the facility filter to narrow down facilities by trading program.'),
+        tags$li('Use the clear buttons to clear filters or searches.'),
+        tags$li(paste0('Facility Summary displays basic facility/unit attribute information 
+                for the ',as.character(latestComplianceYear),' operating year.')),
+        tags$li(paste0('Compliance Summary displays compliance information for 
+                programs applicable to the chosen facility for ',
+                as.character(latestComplianceYear),' and 
+                any previous years the facility was non-compliant.')),
       ),
+      p(class="intro-text","Use the download buttons below to save the data available in the map."),
+      div(class="grid-container",
+          div(class="grid-item",downloadButton(ns("download_facility_data"),"Download Facility Data")),
+          div(class="grid-item",downloadButton(ns("download_compliance_data"),"Download Compliance Data"))),
       tags$hr(),
       p(class="intro-text","For more information on these programs visit",
         tags$a(href="https://www.epa.gov/airmarkets/programs", 
@@ -61,13 +69,12 @@ facilityMapAppUI <- function(id){
       
       fluidRow(id="filtersearch-container",
         column(8, 
-               fluidRow(class='column-decorator', div(h3('Location Search',
-                                                         bsButton("search-tooltip", label = "Search Tooltip", 
+               fluidRow(class='column-decorator', div(h3(bsButton("search-tooltip", label = "Search Tooltip", 
                                                                   icon = icon("question"), style = "info", 
-                                                                  size = "extra-small"))),
+                                                                  size = "extra-small"),'Location Search')),
                         bsPopover(id = "search-tooltip", title = "Using the searches",
-                                  content = paste0("Use the search dropdown to highlight specific locations and zoom into the", 
-                                                   " location to find nearby facilities."),
+                                  content = paste0("Use the search dropdown to highlight specific locations and zoom into the ", 
+                                                   "location to find nearby facilities."),
                                   placement = "right", 
                                   trigger = "focus", 
                                   options = list(container = "body")
@@ -94,13 +101,13 @@ facilityMapAppUI <- function(id){
                )
         ),
         column(4, 
-               fluidRow(class="column-decorator", div(h3("Facility Filters",
-                                                         bsButton("filter-tooltip", label = "Filter Tooltip", 
+               fluidRow(class="column-decorator", div(h3(bsButton("filter-tooltip", label = "Filter Tooltip", 
                                                                   icon = icon("question"), style = "info", 
-                                                                  size = "extra-small"))),
+                                                                  size = "extra-small"),
+                                                         "Facility Filters")),
                         bsPopover(id = "filter-tooltip", title = "Using the filter",
-                                  content = paste0("Use the program filter to refine your search of facilities within a regulatory", 
-                                                   " program across the United States."),
+                                  content = paste0("Use the program filter to refine your search of facilities within a regulatory ", 
+                                                   "program across the United States."),
                                   placement = "right", 
                                   trigger = "focus", 
                                   options = list(container = "body")
@@ -142,6 +149,22 @@ facilityMapAppUI <- function(id){
 
 facilityMapAppServer <- function(input, output, session) {
   
+  unitData <- read.csv(file = paste0(getwd(),"/globals/unitData.csv"))
+  facilityDataTableForDownload <- store_facility_data(unitData)
+  
+  output$download_facility_data <- downloadHandler(
+    filename =  function() { paste0("facility-data-",as.character(latestComplianceYear),".csv") },
+    content = function(file) {
+      write.csv(facilityDataTableForDownload, file, row.names = FALSE)
+    }
+  )
+  output$download_compliance_data <- downloadHandler(
+    filename =  function() { paste0("compliance-data.csv") },
+    content = function(file) {
+      write.csv(makecomplianceDataTableForDownload(), file, row.names = FALSE)
+    }
+  )
+  
   # State and county searches
   reactiveCountySearch <- reactive({countyState})
   stateFilterVal <- reactiveVal({NULL})
@@ -151,7 +174,7 @@ facilityMapAppServer <- function(input, output, session) {
   stateSearch <- callModule(searchServer,"stateSearchInput",
                             state_sf,reactive(c(input$clearSearch)),
                             filterBy='stateName',
-                            filterVal=countyFilterVal)
+                            filterVal=reactive(c()))
   coutSearch <- callModule(searchServer,"countySearchInput",
                            countyState,reactive(c(input$clearSearch)),
                            filterBy='stateName',
@@ -161,6 +184,7 @@ facilityMapAppServer <- function(input, output, session) {
     if (nrow(stateSearch()) != 0){
       # State search selected is filled to pass to county search in order to clear the
       # county search
+      stateFilterVal(NULL)
       stateFilterVal(stateSearch()$stateName)
       # display county outline and zoom to location
       update_map_search(markerData(),state_sf,stateSearch(),'stateName','stateOutline')
@@ -175,6 +199,7 @@ facilityMapAppServer <- function(input, output, session) {
     if (nrow(coutSearch()) != 0){
       # County search selected is filled to pass to state search in order to clear the
       # state search
+      countyFilterVal(NULL)
       countyFilterVal(coutSearch()$stateName)
       # display county outline and zoom to location
       update_map_search(markerData(),countyState,coutSearch(),'countyns','countyOutline')
@@ -254,25 +279,14 @@ facilityMapAppServer <- function(input, output, session) {
   # Initialize leaflet
   output$map <- renderLeaflet({
     mapData <- filter_facility_latlong_data(programfacilityData)
-    legendText <- tagList(div("The numbers inside the purple"),
-                          div("circles indicate the amount of"),
-                          div("facilities in that general area."),
-                          p("The blue markers indicate one facility."))
+    legendText <- tagList(p(div("The numbers inside the marker"),
+                          div("clusters (purple circles)"),
+                          div("indicate the amount of facilities"),
+                          div("in that general area.")),
+                          p(div("The facility markers"),
+                          div("indicate one facility.")))
     leaflet() %>%
       addTiles() %>% 
-      addMarkers(data = mapData,
-                 lng = ~longitude, lat = ~latitude, 
-                 layerId = ~facilityId,
-                 clusterOptions = markerClusterOptions(iconCreateFunction =
-                                                         JS("
-                                          function(cluster) {
-                                             return new L.DivIcon({
-                                               html: '<div><span>' + cluster.getChildCount() + '</div></span>',
-                                               className: 'marker-cluster'
-                                             });
-                                           }"),
-                                                       showCoverageOnHover=FALSE,
-                                                       removeOutsideVisibleBounds=TRUE))%>%
       fitBounds(lng1 = min(na.omit(mapData$longitude))-1.5, 
                 lat1 = min(na.omit(mapData$latitude))-1.5,
                 lng2 = max(na.omit(mapData$longitude))+1.5,
@@ -280,6 +294,8 @@ facilityMapAppServer <- function(input, output, session) {
       addControl(legendText, position = "bottomleft" )
   })
   
+  # min Longitude , min Latitude , max Longitude , max Latitude 
+  # "boundingbox":["51.2867602","51.6918741","-0.5103751","0.3340155"]
   # Update map and include shape file outline that was selected in the search
   update_map_search <- function(markerData,shapeFileData,searchRow,layer,group){
     bbox <- st_bbox(shapeFileData[searchRow,]) %>% 
@@ -291,17 +307,35 @@ facilityMapAppServer <- function(input, output, session) {
       addTiles() %>% 
       addMarkers(data = markerData,
                  lng = ~longitude, lat = ~latitude, 
+                 options = markerOptions(alt=~htmlEscape(facilityName), 
+                                         `aria-label`="facility marker", 
+                                         lat=~latitude,
+                                         lng=~longitude), 
                  layerId = ~facilityId,
-                 clusterOptions = markerClusterOptions(iconCreateFunction =
-                                                         JS("
-                                          function(cluster) {
-                                             return new L.DivIcon({
-                                               html: '<div><span>' + cluster.getChildCount() + '</div></span>',
-                                               className: 'marker-cluster'
-                                             });
-                                           }"),
-                                                       showCoverageOnHover=FALSE,
-                                                       removeOutsideVisibleBounds=TRUE))%>%
+                 label = ~facilityName,
+                 clusterOptions = markerClusterOptions(
+                   iconCreateFunction = JS("function (cluster) {    
+    var markers = cluster.getAllChildMarkers();
+    var latList = []; 
+    var lngList = []; 
+    for (i = 0; i < markers.length; i++) {
+      var markerlats = [markers[i].options.lat];
+      var markerlngs = [markers[i].options.lng];
+      var latList = latList.concat(markerlats);
+      var lngList = lngList.concat(markerlngs);
+    }
+    var minLat = Math.min(...latList);
+    var maxLat = Math.max(...latList);
+    var minLng = Math.min(...lngList);
+    var maxLng = Math.max(...lngList);
+    return new L.DivIcon({ 
+      html: `<div role='img' aria-label='facility cluster marker'>` + cluster.getChildCount() + `<span>&nbsp facilites with bounding box: [`+minLng+`,`+minLat+`,`+maxLng+`,`+maxLat+`]</span></div>`,
+     className: 'marker-cluster'
+    });
+  }"),
+                   showCoverageOnHover=FALSE,
+                   removeOutsideVisibleBounds=TRUE))%>%
+                     
       addPolygons(data = searchRow,
                   layerId = ~searchRow[[layer]], 
                   group = group,
@@ -318,17 +352,34 @@ facilityMapAppServer <- function(input, output, session) {
       clearShapes() %>% 
       addTiles() %>% addMarkers(data = markerData,
                                 lng = ~longitude, lat = ~latitude, 
+                                options = markerOptions(alt=~htmlEscape(facilityName), 
+                                                        `aria-label`="facility marker", 
+                                                        lat=~latitude,
+                                                        lng=~longitude), 
                                 layerId = ~facilityId,
-                                clusterOptions = markerClusterOptions(iconCreateFunction =
-                                                                        JS("
-                                          function(cluster) {
-                                             return new L.DivIcon({
-                                               html: '<div><span>' + cluster.getChildCount() + '</div></span>',
-                                               className: 'marker-cluster'
-                                             });
-                                           }"),
-                                                                      showCoverageOnHover=FALSE,
-                                                                      removeOutsideVisibleBounds=TRUE)) %>% 
+                                label = ~facilityName,
+                                clusterOptions = markerClusterOptions(
+                                  iconCreateFunction = JS("function (cluster) {    
+    var markers = cluster.getAllChildMarkers();
+    var latList = []; 
+    var lngList = []; 
+    for (i = 0; i < markers.length; i++) {
+      var markerlats = [markers[i].options.lat];
+      var markerlngs = [markers[i].options.lng];
+      var latList = latList.concat(markerlats);
+      var lngList = lngList.concat(markerlngs);
+    }
+    var minLat = Math.min(...latList);
+    var maxLat = Math.max(...latList);
+    var minLng = Math.min(...lngList);
+    var maxLng = Math.max(...lngList);
+    return new L.DivIcon({ 
+      html: `<div role='img' aria-label='facility cluster marker'>` + cluster.getChildCount() + `<span>&nbsp facilites with bounding box: [`+minLng+`,`+minLat+`,`+maxLng+`,`+maxLat+`]</span></div>`,
+     className: 'marker-cluster'
+    });
+  }"),
+                                  showCoverageOnHover=FALSE,
+                                  removeOutsideVisibleBounds=TRUE))%>%
       addPolygons(data = shapeFileData,
                   layerId = ~shapeFileData[['stateName']], 
                   group = 'stateOutline',
@@ -340,6 +391,7 @@ facilityMapAppServer <- function(input, output, session) {
                 lng2 = max(na.omit(markerData$longitude))+1.5,
                 lat2 = max(na.omit(markerData$latitude))+1.5)
   }
+  
   # Update map with cleared filter selections
   update_full_map <- function(markerData){
     leafletProxy("map",data=markerData) %>% 
@@ -348,17 +400,34 @@ facilityMapAppServer <- function(input, output, session) {
       clearShapes() %>% 
       addTiles() %>% addMarkers(data = markerData,
                                 lng = ~longitude, lat = ~latitude, 
+                                options = markerOptions(alt=~htmlEscape(facilityName), 
+                                                        `aria-label`="facility marker", 
+                                                        lat=~latitude,
+                                                        lng=~longitude), 
                                 layerId = ~facilityId,
-                                clusterOptions = markerClusterOptions(iconCreateFunction =
-                                                                        JS("
-                                          function(cluster) {
-                                             return new L.DivIcon({
-                                               html: '<div><span>' + cluster.getChildCount() + '</div></span>',
-                                               className: 'marker-cluster'
-                                             });
-                                           }"),
-                                                                      showCoverageOnHover=FALSE,
-                                                                      removeOutsideVisibleBounds=TRUE)) %>% 
+                                label = ~facilityName,
+                                clusterOptions = markerClusterOptions(
+                                  iconCreateFunction = JS("function (cluster) {    
+    var markers = cluster.getAllChildMarkers();
+    var latList = []; 
+    var lngList = []; 
+    for (i = 0; i < markers.length; i++) {
+      var markerlats = [markers[i].options.lat];
+      var markerlngs = [markers[i].options.lng];
+      var latList = latList.concat(markerlats);
+      var lngList = lngList.concat(markerlngs);
+    }
+    var minLat = Math.min(...latList);
+    var maxLat = Math.max(...latList);
+    var minLng = Math.min(...lngList);
+    var maxLng = Math.max(...lngList);
+    return new L.DivIcon({ 
+      html: `<div role='img' aria-label='facility cluster marker'>` + cluster.getChildCount() + `<span>&nbsp facilites with bounding box: [`+minLng+`,`+minLat+`,`+maxLng+`,`+maxLat+`]</span></div>`,
+     className: 'marker-cluster'
+    });
+  }"),
+                                  showCoverageOnHover=FALSE,
+                                  removeOutsideVisibleBounds=TRUE))%>%
       #setView(lng = -93.85, lat = 37, zoom = 4)
       fitBounds(lng1 = min(na.omit(markerData$longitude))-1.5, 
                 lat1 = min(na.omit(markerData$latitude))-1.5,
@@ -372,22 +441,38 @@ facilityMapAppServer <- function(input, output, session) {
       clearMarkers() %>% 
       addTiles() %>% addMarkers(data = markerData,
                                 lng = ~longitude, lat = ~latitude, 
+                                options = markerOptions(alt=~htmlEscape(facilityName), 
+                                                        `aria-label`="facility marker", 
+                                                        lat=~latitude,
+                                                        lng=~longitude), 
                                 layerId = ~facilityId,
-                                clusterOptions = markerClusterOptions(iconCreateFunction =
-                                                                        JS("
-                                          function(cluster) {
-                                             return new L.DivIcon({
-                                               html: '<div><span>' + cluster.getChildCount() + '</div></span>',
-                                               className: 'marker-cluster'
-                                             });
-                                           }"),
-                                                                      showCoverageOnHover=FALSE,
-                                                                      removeOutsideVisibleBounds=TRUE))
+                                label = ~facilityName,
+                                clusterOptions = markerClusterOptions(
+                                  iconCreateFunction = JS("function (cluster) {    
+    var markers = cluster.getAllChildMarkers();
+    var latList = []; 
+    var lngList = []; 
+    for (i = 0; i < markers.length; i++) {
+      var markerlats = [markers[i].options.lat];
+      var markerlngs = [markers[i].options.lng];
+      var latList = latList.concat(markerlats);
+      var lngList = lngList.concat(markerlngs);
+    }
+    var minLat = Math.min(...latList);
+    var maxLat = Math.max(...latList);
+    var minLng = Math.min(...lngList);
+    var maxLng = Math.max(...lngList);
+    return new L.DivIcon({ 
+      html: `<div role='img' aria-label='facility cluster marker'>` + cluster.getChildCount() + `<span>&nbsp facilites with bounding box: [`+minLng+`,`+minLat+`,`+maxLng+`,`+maxLat+`]</span></div>`,
+     className: 'marker-cluster'
+    });
+  }"),
+                                  showCoverageOnHover=FALSE,
+                                  removeOutsideVisibleBounds=TRUE))
   }
   
   # When map is clicked, show a popup with facility info
   observeEvent(input$map_marker_click,{
-    print(input$map_marker_click$id)
     event <- input$map_marker_click
     if (is.null(event)){
       return()
@@ -406,7 +491,7 @@ facilityMapAppServer <- function(input, output, session) {
   # Show a popup at the given location
   showFacInfoPopup <- function(fac_id, lat, lng) {
     # Pick first row of unit data
-    selectedFac <- unique(facilityLatLongData[facilityLatLongData$facilityId == fac_id,])[1,]
+    selectedFac <- unique(programfacilityData[programfacilityData$facilityId == fac_id,c("facilityName","county","stateCode","stateName")])
     content <- as.character(
       tagList(
         tags$h4(selectedFac$facilityName),
@@ -424,7 +509,7 @@ facilityMapAppServer <- function(input, output, session) {
   get_facility_info_for_side_panel <- function(facilityId){
     
     selectedUnitFac <- unitData[unitData$facilityId == facilityId,]
-    selectedFac <- facilityLatLongData[facilityLatLongData$facilityId == facilityId,]
+    selectedFac <- unique(programfacilityData[programfacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
     fuelTypesStg <- paste0(unique(unitData$primaryFuelInfo[unitData$facilityId == facilityId]),collapse = ", ")
     operatingStatuses <- paste0(lapply(selectedUnitFac$unitId,function(unit){
       paste0("<strong>",unit,"</strong>",": ",selectedUnitFac$operatingStatus[selectedUnitFac$unitId == unit])
@@ -449,9 +534,9 @@ facilityMapAppServer <- function(input, output, session) {
     
     content <- 
       tagList(
-        tags$h4(selectedFac$facilityName[1]),
+        tags$h4(selectedFac$facilityName),
         tags$strong("Facility ID:"),sprintf(" %s", as.character(facilityId)), tags$br(),
-        tags$strong("State:"),sprintf(" %s", selectedFac$stateName[1]), tags$br(),
+        tags$strong("State:"),sprintf(" %s", selectedFac$stateName), tags$br(),
         tags$h5(tags$u("Primary Fuel Type")),
         sprintf("%s", fuelTypesStg), tags$br(),
         tags$h5(tags$u("Pollutant Controls")),
@@ -473,7 +558,7 @@ facilityMapAppServer <- function(input, output, session) {
   
   get_compliance_info_for_side_panel <- function(facilityId){
     
-    selectedFac <- unitData[unitData$facilityId == facilityId,]
+    selectedFac <- unique(programfacilityData[programfacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
     complianceFacilityData <- get_allow_comp_data(latestComplianceYear,facilities=c(facilityId))
     
     accountNumber <- as.character(complianceFacilityData$accountNumber[1])
@@ -491,21 +576,9 @@ facilityMapAppServer <- function(input, output, session) {
       if (subjectedPrograms == ""){
         subjectedPrograms <- "This facility is not subjected to CAMD's Allowance-based programs."
       }
-      # Consider printing new compliance data (e.g. when ARP has data before CSAPR)
-      'complianceTable <- complianceFacilityData[c("programCodeInfo",
-                                                  "allocated",
-                                                  "totalAllowancesHeld",
-                                                  "complianceYearEmissions",
-                                                  "carriedOver")]
-      colnames(complianceTable) <- c("Program","Allocated","Held","Emissions","Banked")
-      complianceDisplayTable <- tagList(
-        tags$h5("Compliance for 2020:"),
-        HTML(getHTML(complianceTable))
-      )'
-      complianceFor2020 <- complianceFacilityData[complianceFacilityData$year == latestComplianceYear,]
       
-      compTableForLatestYear <- bind_rows(lapply(complianceFor2020$programCodeInfo, function(prg){
-        if (is.na(complianceFor2020$excessEmissions[complianceFor2020$programCodeInfo == prg])){
+      compTableForLatestYear <- bind_rows(lapply(complianceFacilityData$programCodeInfo, function(prg){
+        if (is.na(complianceFacilityData$excessEmissions[complianceFacilityData$programCodeInfo == prg])){
           compStr <- "Yes"
         }
         else{compStr <- "No"}
@@ -517,10 +590,14 @@ facilityMapAppServer <- function(input, output, session) {
         HTML(getHTML(compTableForLatestYear))
       )
       
-      compYearsOutOfComp <- bind_rows(lapply(1:nrow(complianceFacilityData), function(row){
-        if (!is.na(complianceFacilityData[row,"excessEmissions"])){
-          c("Program"=complianceFacilityData$programCodeInfo[row], 
-            "Year"=complianceFacilityData$year[row],
+      complianceYears <- unique(na.omit(unlist(allCompliancePrograms$complianceYears)))
+      
+      allYearComplianceFacilityData <- get_allow_comp_data(complianceYears,facilities=c(facilityId))
+      
+      compYearsOutOfComp <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
+        if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
+          c("Program"=allYearComplianceFacilityData$programCodeInfo[row], 
+            "Year"=allYearComplianceFacilityData$year[row],
             "In compliance?"="No")
         }
       }))
@@ -530,8 +607,9 @@ facilityMapAppServer <- function(input, output, session) {
       }
       else{
         outOfComplianceTable <- tagList(
-          tags$h5(tags$u("Compliance from past years:")),
-          HTML(getHTML(outOfComplianceTable))
+          tags$h5(tags$u("Non-Compliant Years:")),
+          HTML(getHTML(compYearsOutOfComp)),
+          tags$p("All other years the facility was in compliance.")
         )
       }
       
@@ -553,7 +631,7 @@ facilityMapAppServer <- function(input, output, session) {
     
     content <- 
       tagList(
-        tags$h4(selectedFac$facilityName[1]),
+        tags$h4(selectedFac$facilityName),
         tags$strong("Account Number:"),sprintf(" %s", accountNumber),
         tags$h5(tags$u("Subjected Programs:")),sprintf(" %s", subjectedPrograms), tags$br(),
         complianceDisplayTable,

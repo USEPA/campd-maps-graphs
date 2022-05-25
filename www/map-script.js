@@ -22,14 +22,6 @@ $(function() {
   }
   
   $(document).keyup(function(event) {
-    if (event.which === 9) {
-      if ($(event.target).is(":focus")) {
-        console.log($(event.target));
-      }
-    }
-  });
-  
-  $(document).keyup(function(event) {
       if ($(".leaflet-marker-icon").is(":focus") && (event.key == "Enter")) {
           event.target.click()
       }

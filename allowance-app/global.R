@@ -1,19 +1,8 @@
 ### Global
 
-applicableAllowanceComplianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/attributes/applicable?api_key=",apiKEY)
-res = GET(applicableAllowanceComplianceUrl)
-applicableAllowCompTable <- fromJSON(rawToChar(res$content))
-
-applicableAllowCompTable = na.omit(merge(x=applicableAllowCompTable,
-           y=currentCompliancePrograms[,c("programCode","programDescription")],
-           by="programCode",all.x=TRUE))
-
-applicableAllowCompTable = merge(x=applicableAllowCompTable,
-           y=states[,c("stateCode","stateName")],
-           by="stateCode",all.x=TRUE)
+applicableAllowCompTable <- read.csv(file = paste0(getwd(),"/globals/applicableAllowCompTable.csv"))
 
 uniquePrograms <- unique(applicableAllowCompTable$programCode)
-uniqueStates <- unique(applicableAllowCompTable$stateName)
 
 allowanceBankFilterIndicesState <- match(c("programCode","stateName")
                                          ,names(applicableAllowCompTable))

@@ -7,13 +7,11 @@ $(function() {
 
     // by only finding elements that do not have tabindex="-1" we ensure we don't
     // corrupt the previous state of the element if a modal was already open
-    nodes = document.querySelectorAll('body *:not(dialog):not([tabindex="-1"])');
+    nodes = document.querySelectorAll('body *');
   
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
   
-      // save the previous tabindex state so we can restore it on close
-      node._prevTabindex = node.getAttribute('tabindex');
       node.setAttribute('tabindex', -1);
       node.setAttribute('aria-hidden', 'true');
       node.setAttribute('disabled', '');
@@ -28,16 +26,12 @@ $(function() {
     
     document.getElementById('ss-connect-dialog').setAttribute('aria-hidden', 'false');
     document.getElementById('ss-connect-dialog').removeAttribute('disabled');
-    document.getElementById('ss-connect-dialog').setAttribute('tabindex', 0);
+    document.getElementById('ss-connect-dialog').removeAttribute('tabindex');
     document.getElementById('ss-reload-link').setAttribute('aria-hidden', 'false');
     document.getElementById('ss-reload-link').removeAttribute('disabled');
     document.getElementById('ss-connect-dialog').focus();
-    document.getElementById('ss-reload-link').setAttribute('tabindex', 0);
-    $('#ss-reload-link').keydown(function(e){
-      if($('#ss-reload-link').is(":focus") && (e.which || e.keyCode) == 9){
-        e.preventDefault();
-      }
-    });
+    document.getElementById('ss-reload-link').removeAttribute('tabindex');
+    
     }
   )
 });

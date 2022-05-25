@@ -1,5 +1,7 @@
 ---
 applications:
 - name: CAMPD Maps & Graphs
-  memory: 999M
+  disk_quota: 2G
+  memory: 1G
   random-route: true
+  timeout: 180

@@ -15,7 +15,6 @@ allowancesBankedUI <- function(id) {
         height = "50px",
         width = "50px"
       ),
-      useShinydashboard(),
       h1("Allowance Trends"),
       fluidRow(
         column(12, p("This tool uses annual compliance data to visualize historical 
@@ -36,7 +35,7 @@ allowancesBankedUI <- function(id) {
                      dropdownSelectUI(ns("programInput"), 
                                       label= paste0("2. ",singleLabelConversion$label[singleLabelConversion$columnName == "programDescription"]),
                                       placeholder_label= "--select program--",
-                                      choices= sort(uniquePrograms))
+                                      choices= sort(unique(currentCompliancePrograms$programCode[!is.na(currentCompliancePrograms$complianceYears)])))
                      ),
                    conditionalPanel(
                      condition = "input.levelOfAnalysis == 's'", ns = ns,
@@ -47,7 +46,7 @@ allowancesBankedUI <- function(id) {
                      ),
         div(class="clear-preview-btns",
             actionButton(ns("clearFilters"), "Clear Filters"),
-            actionButton(ns("previewButton"), "Preview Data")
+            actionButton(class="preview-button", ns("previewButton"), "Preview Data")
             )
         ),
       mainPanel(
@@ -64,6 +63,8 @@ allowancesBankedServer <- function(input, output, session) {
   observeEvent(input$stopanimation, {
     stop_gif()
   })
+  
+  ARPComplianceData <- read.csv(file = paste0(getwd(),"/globals/ARPComplianceData.csv"))
   
   selectedDataSet <- reactive({applicableAllowCompTable})
   choices <- reactiveValues(programsSelected=NULL,
@@ -150,10 +151,7 @@ allowancesBankedServer <- function(input, output, session) {
       }
       
       if (programsSelected == "ARP"){
-        facilityComplianceData <- get_allow_comp_data(unlist(currentCompliancePrograms[currentCompliancePrograms$programCode %in%
-                                                                                    c("ARP"),]$complianceYears),
-                                                 programs=c("ARP"), states = statesSelected)
-        #facilityComplianceData <- arpComplianceData[arpComplianceData$stateCode %in% statesSelected,]
+        facilityComplianceData <- ARPComplianceData[ARPComplianceData$stateCode %in% statesSelected,]
       }
       else {
         facilityComplianceData <- get_allow_comp_data(
@@ -170,6 +168,7 @@ allowancesBankedServer <- function(input, output, session) {
         aggregatedComplianceData <- merge(csaprAllocations[,c("stateName","programCode","year","allocated")],
               subset(aggregatedComplianceData, select =-c(allocated) ),
               by=c("stateName","programCode","year"))
+        aggregatedComplianceData$carriedOver <- aggregatedComplianceData$allocated - aggregatedComplianceData$totalAllowancesDeducted
       }
       
       # order for scatter plot
@@ -257,10 +256,7 @@ allowancesBankedServer <- function(input, output, session) {
       }
       
       if (programsSelected == "ARP"){
-        facilityComplianceData <- get_allow_comp_data(unlist(currentCompliancePrograms[currentCompliancePrograms$programCode %in%
-                                                                                         c("ARP"),]$complianceYears),
-                                                      programs=c("ARP"))
-        #facilityComplianceData <- arpComplianceData 
+        facilityComplianceData <- ARPComplianceData 
       }
       else {
         facilityComplianceData <- get_allow_comp_data(
@@ -295,6 +291,7 @@ allowancesBankedServer <- function(input, output, session) {
         tableData <- merge(aggregatedAllocationsProgramDF[,c("programCode","year","allocated")],
                                           subset(tableData, select =-c(allocated) ),
                                           by=c("programCode","year"))
+        tableData$carriedOver <- tableData$allocated - tableData$totalAllowancesDeducted
       }
       
       names(tableData) <- tableLabelConversion$label[match(names(tableData), 

@@ -39,6 +39,7 @@ library(plotly)
 library(DT)
 library(shinyjs)
 library(httr)
+library(htmltools)
 library(jsonlite)
 library(tidyverse)
 library(lubridate)
@@ -46,8 +47,13 @@ library(zoo)
 
 load_dot_env(".env")
 
+#globals
 source("./globals/global-static.R")
 source("./globals/global-load.R")
+source("./facility-map-app/global.R")
+source("./allowance-app/global.R")
+
+#modules
 source("./modules/filter-logic.R")
 source("./modules/filter-logic-placeholder-single-selects.R")
 source("./modules/filter-logic-select-all-single-selects.R")
@@ -57,11 +63,10 @@ source("./modules/display-table.R")
 source("./modules/search.R")
 source("./modules/line-graph.R")
 source("./modules/data-table.R")
+
+#pages
 source("./allowance-app/page.R")
 source("./facility-map-app/page.R")
-
-source("./facility-map-app/global.R")
-source("./allowance-app/global.R")
 
 ui <- function(request) {
   fluidPage(
@@ -72,7 +77,7 @@ ui <- function(request) {
     includeScript('www/script.js'),
     # disconnect
     disconnectMessage(
-      text = "Your session timed out, reload the application.",
+      text = "Your session timed out! Please reload the application.",
       refresh = "Reload now",
       background = "white",
       colour = "#000000",

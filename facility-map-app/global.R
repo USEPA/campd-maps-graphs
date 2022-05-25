@@ -2,28 +2,8 @@
 # data for usage
 
 # calls of functions for global variables
-unitData <- get_facility_data(latestComplianceYear)
-facilityData <- filter_facility_att_data(unitData)
 
-programMappedData <- bind_rows(lapply(unique(facilityData$facilityId), function(id){
-  singleFacilityData <- facilityData[facilityData$facilityId == id,]
-  programs <- c(unique(unlist(strsplit(singleFacilityData$programCodeInfo, ", "))))
-  isolatedFacilityData <- unique(facilityData[, -which(names(facilityData) == "programCodeInfo")])
-  dataPrgCodes <- bind_rows(lapply(programs, function(prg){
-    data <- data.frame(id, prg)
-    colnames(data) <- c("facilityId", "programCode")
-    data
-  }))
-  #isolatedFacilityData
-  merge(x=dataPrgCodes,y=isolatedFacilityData,
-        by="facilityId",all.x=TRUE)
-}))
-
-programfacilityData = merge(x=programMappedData,
-                                  y=allPrograms[,c("programCode","programDescription")],
-                                  by="programCode",all.x=TRUE)
-
-facilityLatLongData <- filter_facility_latlong_data(programfacilityData)
+programfacilityData <- read.csv(file = paste0(getwd(),"/globals/programFacilityData.csv"))
 
 facilityFilterIndices <- match(c("programCode","stateName","facilityName")
                                ,names(programfacilityData))
@@ -31,3 +11,38 @@ facilityFilterIndices <- match(c("programCode","stateName","facilityName")
 searchFilterIndices <- match(c("stateName","countyName")
                              ,names(countyState))
 
+filter_facility_latlong_data <- function(facilityData){
+  unique(facilityData[,c("facilityId","stateCode","stateName","county","facilityName","longitude","latitude")])
+}
+
+makecomplianceDataTableForDownload <- function(){
+  allYearComplianceFacilityData <- read.csv(file = paste0(getwd(),"/globals/allYearComplianceFacilityData.csv"))
+  complianceFacilityDataLatest <- read.csv(file = paste0(getwd(),"/globals/complianceFacilityDataLatestYear.csv"))
+  
+  complianceFacilityDataLatestFormat <- bind_rows(lapply(1:nrow(complianceFacilityDataLatest), function(row){
+    if (is.na(complianceFacilityDataLatest$excessEmissions[row])){
+      compStr <- "Yes"
+    }
+    else{compStr <- "No"}
+    c("Facility Name"=complianceFacilityDataLatest$facilityName[row], 
+      "Facility Id"=complianceFacilityDataLatest$facilityId[row], 
+      "Account Number"=complianceFacilityDataLatest$accountNumber[row], 
+      "Program"=complianceFacilityDataLatest$programCodeInfo[row], 
+      "Year"=complianceFacilityDataLatest$year[row],
+      "In compliance?"=compStr)
+  }))
+  
+  
+  allYearComplianceFacilityDataFormat <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
+    if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
+      c("Facility Name"=allYearComplianceFacilityData$facilityName[row], 
+        "Facility Id"=allYearComplianceFacilityData$facilityId[row], 
+        "Account Number"=allYearComplianceFacilityData$accountNumber[row], 
+        "Program"=allYearComplianceFacilityData$programCodeInfo[row], 
+        "Year"=allYearComplianceFacilityData$year[row],
+        "In compliance?"="No")
+    }
+  }))
+  
+  complianceDataTableForDownload <- rbind(complianceFacilityDataLatestFormat,allYearComplianceFacilityDataFormat)
+}

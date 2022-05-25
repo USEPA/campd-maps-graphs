@@ -49,7 +49,7 @@ programBudgetsUI <- function(id){
                      
                      div(class="clear-preview-btns",
                          actionButton(ns("clearFilters"), "Clear Filters"),
-                         actionButton(ns("previewButton"), "Preview Data")
+                         actionButton(class="preview-button", ns("previewButton"), "Preview Data")
                      )
                      ),
         mainPanel(

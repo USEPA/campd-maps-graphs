@@ -80,13 +80,13 @@ allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode ==
 
 # Only current programs
 
-emissYearBinding <- lapply(allCompliancePrograms[(allCompliancePrograms$retiredIndicator == FALSE & allCompliancePrograms$programCode != "ARP"),]$programCode, function(prg){
+'emissYearBinding <- lapply(allCompliancePrograms[(allCompliancePrograms$retiredIndicator == FALSE & allCompliancePrograms$programCode != "ARP"),]$programCode, function(prg){
   latestEmissionYear <- get_latest_valid_vear(annualEmissionsUrl, c(prg))
   if(!is.na(latestEmissionYear)){
     yearList<-list(seq(startYears$startYear[startYears$programCode==prg],
                        latestEmissionYear))}
   cbind(prg,yearList)
-})
+})'
 
 for (prg in allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]$programCode){
   if(prg!="ARP"){
@@ -107,22 +107,15 @@ for (prg in allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALS
 
 currentCompliancePrograms <- allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]
 
-allLatestComplianceYear <- lapply(currentCompliancePrograms$programCode, function(program){
+latestComplianceYear <- min(na.omit(unlist(lapply(currentCompliancePrograms$programCode, function(program){
   max(unlist(currentCompliancePrograms$complianceYears[currentCompliancePrograms$programCode == program]))
-})
+}))))
 
-latestComplianceYear <- min(na.omit(unlist(allLatestComplianceYear)))
-
-allLatestEmissionYears <- lapply(currentCompliancePrograms$programCode, function(program){
+latestEmissionsYear <- min(na.omit(unlist(lapply(currentCompliancePrograms$programCode, function(program){
   max(unlist(currentCompliancePrograms$emissionYears[currentCompliancePrograms$programCode == program]))
-})
-
-latestEmissionsYear <- min(na.omit(unlist(allLatestEmissionYears)))
+}))))
 
 # Get compliance data for ARP
-'arpComplianceData <- get_allow_comp_data(unlist(currentCompliancePrograms[currentCompliancePrograms$programCode %in%
-                                                                     c("ARP"),]$complianceYears),
-                                         programs=c("ARP"))'
 
 # Storing states 
 url <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)

@@ -6,6 +6,9 @@ source('./allowance-app/resources.R')
 programAppUI <- function(id){
   ns <- NS(id)
   tagList(
+    useShinyjs(),
+    useShinydashboard(),
+    includeScript('www/program-insights-script.js'),
     navbarPage(strong("Program Insights"),
                tabPanel("Allowance Trends",
                         allowancesBankedUI(ns("allowancesBankedTab"))
