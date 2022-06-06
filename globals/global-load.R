@@ -53,9 +53,7 @@ global_vars <- function(){
   states <- fromJSON(rawToChar(res$content))
   
   # Unit data
-  unitDataLoad <- read.csv(file = paste0(gitRawBase,"/data/unitData.csv"))
-  unitData <<- merge(x=unitDataLoad, y=states[,c("stateCode","stateName")],
-                   by="stateCode")
+  unitData <<- read.csv(file = paste0(gitRawBase,"/data/unitData.csv"))
   
   ####### assigning global values #######
   programInfo$allPrograms <<- allPrograms

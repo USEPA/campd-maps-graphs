@@ -7,27 +7,36 @@ apiKEY <- Sys.getenv("API_KEY")
 gitRawBase <- "https://raw.githubusercontent.com/USEPA/campd-maps-graphs/testing"
 
 # annual emissions url
-annualEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/annual?API_KEY=",apiKEY)
+#annualEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/annual?API_KEY=",apiKEY)
+annualEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual/stream?API_KEY=",apiKEY)
+annualEmissionsPageUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annualAPI_KEY=",apiKEY)
 # ozone emissions url
-ozoneEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/ozone?API_KEY=",apiKEY)
+#ozoneEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/ozone?API_KEY=",apiKEY)
+ozoneEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone/stream?API_KEY=",apiKEY)
+# quarter emissions url
+quarterEmissionsPageUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/quarterly?API_KEY=",apiKEY)
 # allowance compliance stream url
-complianceUrl <- paste0(apiUrlBase,"/streaming-services/allowance-compliance?API_KEY=",apiKEY)
+#complianceUrl <- paste0(apiUrlBase,"/streaming-services/allowance-compliance?API_KEY=",apiKEY)
+complianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/stream?API_KEY=",apiKEY)
 # allowance compliance page url
 compliancePageUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?API_KEY=",apiKEY)
 # allowance compliance url
 complianceApplicableUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/attributes/applicable?api_key=",apiKEY)
 # facilities stream url
-facilitiesUrl <- paste0(apiUrlBase,"/streaming-services/facilities/attributes?API_KEY=",apiKEY)
+#facilitiesUrl <- paste0(apiUrlBase,"/streaming-services/facilities/attributes?API_KEY=",apiKEY)
+facilitiesUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/stream?API_KEY=",apiKEY)
 # facilities (applicable) url
 facilitiesApplicableUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/applicable?API_KEY=",apiKEY)
 # allowance holdings url
-allowanceHoldingsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-holdings?API_KEY=",apiKEY)
+#allowanceHoldingsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-holdings?API_KEY=",apiKEY)
+allowanceHoldingsUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-holdings/stream?API_KEY=",apiKEY)
 # allowance transactions url
-allowanceTransactionsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-transactions?API_KEY=",apiKEY)
+#allowanceTransactionsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-transactions?API_KEY=",apiKEY)
+allowanceTransactionsUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-transactions/stream?API_KEY=",apiKEY)
 # program mdm url
 programMdmUrl <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
 # program mdm url
-programMdmUrl <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
+statesMdmUrl <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)
 
 
 # table to convert column name to appropriate lables for UI
@@ -290,6 +299,33 @@ get_latest_valid_vear <- function(url, program=NULL){
   return(latestYear)
 }
 
+# get latest year for an endpoint returning yearly data
+get_latest_emission_valid_vear <- function(url, program=NULL){
+  latestYear <- as.integer(format(Sys.Date(), "%Y"))
+  baseQuery <- list(page="1",
+                    perPage="1",
+                    quarter="4")
+  runExit <- 0
+  
+  if (!is.null(program)){baseQuery <- append(baseQuery, list(programCodeInfo = program))}
+  query <- append(baseQuery, list(year=latestYear))
+  res = GET(url, query = query)
+  if (length(res$content) <= 2 | res$status_code==400){
+    while(length(res$content) <= 2 | res$status_code==400){
+      latestYear <- latestYear - 1
+      runExit <- runExit + 1
+      if (runExit > 2){
+        return(NA)
+        break
+      }
+      query <- append(baseQuery, list(year=latestYear))
+      res = GET(url, query = query)
+    }
+  }
+  
+  return(latestYear)
+}
+
 make_transaction_table <- function(transactionData, facilityId){
   buyDataNoNA <- transactionData[!is.na(transactionData$buyFacilityId),]
   sellDataNoNA <- transactionData[!is.na(transactionData$sellFacilityId),]
@@ -335,8 +371,8 @@ make_transaction_table <- function(transactionData, facilityId){
 #store functions
 
 # to get all facility data for downloading off of app
-store_facility_data <- function(unitData){
-  unitData <- unitData %>%
+store_facility_data <- function(unitDataBase){
+  unitData <- unitDataBase %>%
     mutate("SO2 Controls Installed" = case_when(
       length(na.omit(so2ControlInfo)) != 0 ~ "Yes",
       length(na.omit(so2ControlInfo)) == 0 ~ "No"

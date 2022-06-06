@@ -231,7 +231,7 @@
 "La Paloma Generating Plant",55151,"CA","California","Kern County",35.2956,-119.5919,"CTG-4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Long Beach Generating Station",341,"CA","California","Los Angeles County",33.7641,-118.2248,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "La Paloma Generating Plant",55151,"CA","California","Kern County",35.2956,-119.5919,"CTG-3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Moss Landing Powner Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"4A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Moss Landing Power Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"4A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Gateway Generating Station",56476,"CA","California","Contra Costa County",38.0167,-121.7592,"GT2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Goose Haven Energy Center",55627,"CA","California","Solano County",38.2271,-121.844,"UNIT1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Olive",6013,"CA","California","Los Angeles County",34.1775,-118.3147,"01","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -246,7 +246,7 @@
 "Stanton Energy Reliability Center",60698,"CA","California","Orange County",33.807,-117.9864,"D7","Operating (Started 04/17/2020)","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Niland Gas Turbine Plant",56569,"CA","California","Imperial County",33.2432,-115.498,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Miramar Energy Facility",56232,"CA","California","San Diego County",32.8769,-117.1664,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Moss Landing Powner Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"2A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Moss Landing Power Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"2A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "AES Huntington Beach",335,"CA","California","Orange County",33.6436,-117.9788,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Hanford Energy Park Peaker",55698,"CA","California","Kings County",36.2689,-119.6469,"HEP2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Walnut Creek Energy Park",57515,"CA","California","Los Angeles County",34.0078,-117.9425,"GT3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -301,7 +301,7 @@
 "Miramar Energy Facility",56232,"CA","California","San Diego County",32.8769,-117.1664,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Midway Peaking",56639,"CA","California","Fresno County",36.654,-120.5797,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Mountainview Generating Station",358,"CA","California","San Bernardino County",34.0836,-117.2408,"4-1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Moss Landing Powner Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"3A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Moss Landing Power Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"3A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Sentinel Energy Center, LLC",57482,"CA","California","Riverside County",33.9366,-116.5722,"6","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Hanford Energy Park Peaker",55698,"CA","California","Kings County",36.2689,-119.6469,"HEP1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Elk Hills Power",55400,"CA","California","Kern County",35.2802,-119.4699,"CTG-1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -369,7 +369,7 @@
 "Calpine Gilroy Cogen, LP",10034,"CA","California","Santa Clara County",37.0001,-121.5367,"S-100","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Blythe Energy",55295,"CA","California","Riverside County",33.6157,-114.6865,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Cabrillo Power I Encina Power Station",302,"CA","California","San Diego County",33.1408,-117.3342,"9","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Moss Landing Powner Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"1A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Moss Landing Power Plant",260,"CA","California","Monterey County",36.8042,-121.7775,"1A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Magnolia",56046,"CA","California","Los Angeles County",34.1788,-118.3153,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Los Medanos Energy Center, LLC",55217,"CA","California","Contra Costa County",38.03,-121.8708,"X724","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Los Esteros Critical Energy Facility",55748,"CA","California","Santa Clara County",37.425,-121.9319,"CTG3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -2128,24 +2128,24 @@
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"8","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Cleveland County Generating Facility",57029,"NC","North Carolina","Cleveland County",35.1706,-81.4161,"ES4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "W H Weatherspoon",2716,"NC","North Carolina","Robeson County",34.5889,-78.975,"4","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
-"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"4","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Roxboro",2712,"NC","North Carolina","Person County",36.4833,-79.0731,"1","Operating","Coal","Yes","Yes","Yes","Yes",2020
-"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"14","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"14","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES2-A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES3-A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES1-A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Cleveland County Generating Facility",57029,"NC","North Carolina","Cleveland County",35.1706,-81.4161,"ES1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "University of NC Chapel Hill",54276,"NC","North Carolina","Orange County",35.9069,-79.0617,"ES002","Operating","Coal","Yes","Yes","Yes","Yes",2020
-"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"5","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Edgecombe Genco, LLC",10384,"NC","North Carolina","Edgecombe County",36.0378,-77.7542,"BLR02B","Retired","Coal","Yes","Yes","Yes","Yes",2020
 "Roxboro",2712,"NC","North Carolina","Person County",36.4833,-79.0731,"3A","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "Belews Creek",8042,"NC","North Carolina","Stokes County",36.2811,-80.0603,"2","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES1-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES2-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Asheville",2706,"NC","North Carolina","Buncombe County",35.4714,-82.5431,"1","Operating (Retired 01/29/2020)","Coal","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"9","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"01A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"01B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"9","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
+"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"01A","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
+"L V Sutton",2713,"NC","North Carolina","New Hanover County",34.2824,-77.9864,"01B","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Blewett",2707,"NC","North Carolina","Anson County",34.9815,-79.8771,"3","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Belews Creek",8042,"NC","North Carolina","Stokes County",36.2811,-80.0603,"1","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "Roxboro",2712,"NC","North Carolina","Person County",36.4833,-79.0731,"2","Operating","Coal","Yes","Yes","Yes","Yes",2020
@@ -2162,11 +2162,11 @@
 "Marshall",2727,"NC","North Carolina","Catawba County",35.5975,-80.9658,"3","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "Marshall",2727,"NC","North Carolina","Catawba County",35.5975,-80.9658,"2","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"9","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"4","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"7","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"6","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Cleveland County Generating Facility",57029,"NC","North Carolina","Cleveland County",35.1706,-81.4161,"ES2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"6","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"6","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Butler-Warner Generation Plant",1016,"NC","North Carolina","Cumberland County",35.0986,-78.8294,"GT-7","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Rockingham County Combustion Turbine",55116,"NC","North Carolina","Rockingham County",36.3297,-79.8297,"CT5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"3","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
@@ -2175,7 +2175,7 @@
 "Marshall",2727,"NC","North Carolina","Catawba County",35.5975,-80.9658,"4","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "NCEMC Anson Plant",56249,"NC","North Carolina","Anson County",34.9708,-79.9208,"ES3-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Rockingham County Combustion Turbine",55116,"NC","North Carolina","Rockingham County",36.3297,-79.8297,"CT3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"7","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"7","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Blewett",2707,"NC","North Carolina","Anson County",34.9815,-79.8771,"2","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Craven County Wood Energy",10525,"NC","North Carolina","Craven County",35.1285,-77.17,"ES5A","Operating","Wood","Yes","Yes","Yes","Yes",2020
 "Edgecombe Genco, LLC",10384,"NC","North Carolina","Edgecombe County",36.0378,-77.7542,"BLR02A","Retired","Coal","Yes","Yes","Yes","Yes",2020
@@ -2197,10 +2197,10 @@
 "W H Weatherspoon",2716,"NC","North Carolina","Robeson County",34.5889,-78.975,"5","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"5","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Rockingham County Combustion Turbine",55116,"NC","North Carolina","Rockingham County",36.3297,-79.8297,"CT4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"3","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "CPI USA North Carolina Roxboro",10379,"NC","North Carolina","Person County",36.435,-78.9619,"BLR01C","Operating","Wood","Yes","Yes","Yes","Yes",2020
 "NCEMC Anson Plant",56249,"NC","North Carolina","Anson County",34.9708,-79.9208,"ES4-A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"8","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"8","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Edgecombe Genco, LLC",10384,"NC","North Carolina","Edgecombe County",36.0378,-77.7542,"BLR01B","Retired","Coal","Yes","Yes","Yes","Yes",2020
 "Plant Rowan County",7826,"NC","North Carolina","Rowan County",35.7325,-80.6019,"3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Mayo",6250,"NC","North Carolina","Person County",36.5278,-78.8917,"1A","Operating","Coal","Yes","Yes","Yes","Yes",2020
@@ -2220,7 +2220,7 @@
 "G G Allen",2718,"NC","North Carolina","Gaston County",35.1897,-81.0122,"3","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "Plant Rowan County",7826,"NC","North Carolina","Rowan County",35.7325,-80.6019,"5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "CPI USA North Carolina Southport",10378,"NC","North Carolina","Brunswick County",33.9444,-78.0125,"BLR02C","Operating","Wood","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"2","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Dan River",2723,"NC","North Carolina","Rockingham County",36.4862,-79.7208,"8C","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "CPI USA North Carolina Roxboro",10379,"NC","North Carolina","Person County",36.435,-78.9619,"BLR01A","Operating","Wood","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"13","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
@@ -2229,10 +2229,10 @@
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"14","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "NC Renewable Power - Lumberton LLC",10382,"NC","North Carolina","Robeson County",34.59,-78.9968,"UNIT1","Operating","Wood","Yes","Yes","Yes","Yes",2020
 "Plant Rowan County",7826,"NC","North Carolina","Rowan County",35.7325,-80.6019,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"01B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"01B","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"15","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"10","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"1","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
+"Richmond County Plant",7805,"NC","North Carolina","Richmond County",34.8422,-79.7444,"10","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Asheville",2706,"NC","North Carolina","Buncombe County",35.4714,-82.5431,"4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"11","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "CPI USA North Carolina Southport",10378,"NC","North Carolina","Brunswick County",33.9444,-78.0125,"BLR02A","Operating","Wood","Yes","Yes","Yes","Yes",2020
@@ -2241,7 +2241,7 @@
 "CPI USA North Carolina Roxboro",10379,"NC","North Carolina","Person County",36.435,-78.9619,"BLR01B","Operating","Wood","Yes","Yes","Yes","Yes",2020
 "NCEMC Anson Plant",56249,"NC","North Carolina","Anson County",34.9708,-79.9208,"ES2-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Kings Mountain Energy Center",59325,"NC","North Carolina","Cleveland County",35.1986,-81.3604,"ES-1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"13","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"13","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Butler-Warner Generation Plant",1016,"NC","North Carolina","Cumberland County",35.0986,-78.8294,"GT-5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Buck",2720,"NC","North Carolina","Rowan County",35.7133,-80.3767,"11C","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "CPI USA North Carolina Southport",10378,"NC","North Carolina","Brunswick County",33.9444,-78.0125,"BLR01A","Operating","Wood","Yes","Yes","Yes","Yes",2020
@@ -2251,14 +2251,14 @@
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"2","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Butler-Warner Generation Plant",1016,"NC","North Carolina","Cumberland County",35.0986,-78.8294,"GT-4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"01C","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
-"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"12","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"12","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"1","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "W H Weatherspoon",2716,"NC","North Carolina","Robeson County",34.5889,-78.975,"7","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES3-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Rosemary Power Station",50555,"NC","North Carolina","Halifax County",36.4525,-77.6594,"1","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"10","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Plant Rowan County",7826,"NC","North Carolina","Rowan County",35.7325,-80.6019,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"01A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"H F Lee Steam Electric Plant",2709,"NC","North Carolina","Wayne County",35.3775,-78.0875,"01A","Operating","Natural Gas","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES4-A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lincoln Combustion Turbine",7277,"NC","North Carolina","Lincoln County",35.4317,-81.0347,"10","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "NCEMC Hamlet Plant",56292,"NC","North Carolina","Richmond County",34.8422,-79.7367,"ES5-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -3093,7 +3093,7 @@
 "Hickory Run Energy Station",61028,"PA","Pennsylvania","Lawrence County",40.9951,-80.4301,"CT1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lackawanna Energy Center",60357,"PA","Pennsylvania","Lackawanna County",41.4711,-75.5436,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Handsome Lake Energy",55233,"PA","Pennsylvania","Venango County",41.2908,-79.8061,"EU-5A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Bruce Mansfield",6094,"PA","Pennsylvania","Beaver County",40.6344,-80.42,"3","Operating","Coal","Yes","Yes","Yes","Yes",2020
+"Bruce Mansfield",6094,"PA","Pennsylvania","Beaver County",40.6344,-80.42,"3","Retired","Coal","Yes","Yes","Yes","Yes",2020
 "Croydon Generating Station",8012,"PA","Pennsylvania","Bucks County",40.08,-74.8917,"32","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Brunot Island Power Station",3096,"PA","Pennsylvania","Allegheny County",40.4638,-80.044,"2B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Domtar Paper Company, LLC",54638,"PA","Pennsylvania","Elk County",41.4908,-78.6767,"041","Operating","Coal","Yes","Yes","Yes","Yes",2020
@@ -3113,10 +3113,10 @@
 "Brunner Island, LLC",3140,"PA","Pennsylvania","York County",40.097,-76.6962,"1","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "New Castle",3138,"PA","Pennsylvania","Lawrence County",40.9378,-80.3681,"3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Eddystone Generating Station",3161,"PA","Pennsylvania","Delaware County",39.858,-75.323,"3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"WPS Westwood Generation, LLC",50611,"PA","Pennsylvania","Schuylkill County",40.6191,-76.45,"031","Operating","Coal","Yes","Yes","Yes","Yes",2020
+"Rausch Creek Generation, LLC",50611,"PA","Pennsylvania","Schuylkill County",40.6191,-76.45,"031","Operating","Coal","Yes","Yes","Yes","Yes",2020
 "Gilberton Power Company",10113,"PA","Pennsylvania","Schuylkill County",40.79,-76.1984,"031","Operating","Coal Refuse","Yes","Yes","Yes","Yes",2020
-"Bruce Mansfield",6094,"PA","Pennsylvania","Beaver County",40.6344,-80.42,"1","Operating","Coal","Yes","Yes","Yes","Yes",2020
-"Bruce Mansfield",6094,"PA","Pennsylvania","Beaver County",40.6344,-80.42,"2","Operating","Coal","Yes","Yes","Yes","Yes",2020
+"Bruce Mansfield",6094,"PA","Pennsylvania","Beaver County",40.6344,-80.42,"1","Retired","Coal","Yes","Yes","Yes","Yes",2020
+"Bruce Mansfield",6094,"PA","Pennsylvania","Beaver County",40.6344,-80.42,"2","Retired","Coal","Yes","Yes","Yes","Yes",2020
 "New Castle",3138,"PA","Pennsylvania","Lawrence County",40.9378,-80.3681,"5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Croydon Generating Station",8012,"PA","Pennsylvania","Bucks County",40.08,-74.8917,"21","Operating","Diesel Oil","Yes","Yes","Yes","Yes",2020
 "Armstrong Power, LLC",55347,"PA","Pennsylvania","Armstrong County",40.6383,-79.3503,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -3454,10 +3454,10 @@
 "Copper Station",9,"TX","Texas","El Paso County",31.7569,-106.375,"CTG-1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Mountain Creek Generating Station",3453,"TX","Texas","Dallas County",32.7253,-96.9361,"8","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "LaPorte Generating Station",55365,"TX","Texas","Harris County",29.702,-95.071,"GT-4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"GT-6A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"GT-6A","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Deer Park Energy Center",55464,"TX","Texas","Harris County",29.7153,-95.1361,"CTG3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Freeport Energy Center",56152,"TX","Texas","Brazoria County",28.99,-95.36,"CTG1","Operating",NA,"Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"**5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"**5","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Lake Hubbard",3452,"TX","Texas","Dallas County",32.8364,-96.5464,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Texas City Cogeneration",52088,"TX","Texas","Galveston County",29.3787,-94.944,"GT-B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Bacliff Generating Station",60264,"TX","Texas","Galveston County",29.4922,-94.9844,"BCGT1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -3477,7 +3477,7 @@
 "T H Wharton",3469,"TX","Texas","Harris County",29.9414,-95.5333,"THW41","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "T H Wharton",3469,"TX","Texas","Harris County",29.9414,-95.5333,"THW42","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Montgomery County Power Station",60925,"TX","Texas","Montgomery County",30.4358,-95.5206,"CT2","Operating (Started 09/04/2020)","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Jack County Generation Facility",55230,"TX","Texas","Jack County",33.101,-97.9574,"CT-3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Jack County Generation Facility",55230,"TX","Texas","Jack County",33.101,-97.9574,"CT-4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "T H Wharton",3469,"TX","Texas","Harris County",29.9414,-95.5333,"THW53","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -3495,7 +3495,7 @@
 "Knox Lee Power Plant",3476,"TX","Texas","Gregg County",32.3766,-94.6415,"2","Operating (Retired 05/01/2020)","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Knox Lee Power Plant",3476,"TX","Texas","Gregg County",32.3766,-94.6415,"3","Operating (Retired 05/01/2020)","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Odyssey Energy Altura Cogen, LLC",50815,"TX","Texas","Harris County",29.8169,-95.1086,"ENG601","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"GT-6B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"GT-6B","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "San Jacinto Steam Electric Station",7325,"TX","Texas","Harris County",29.6967,-95.0411,"SJS1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Wilkes Power Plant",3478,"TX","Texas","Marion County",32.8486,-94.5469,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "W A Parish",3470,"TX","Texas","Fort Bend County",29.4783,-95.6358,"WAP2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
@@ -3570,10 +3570,10 @@
 "R W Miller",3628,"TX","Texas","Palo Pinto County",32.6581,-98.3103,"**4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Mountain Creek Generating Station",3453,"TX","Texas","Dallas County",32.7253,-96.9361,"7","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Sam Rayburn Plant",3631,"TX","Texas","Victoria County",28.8947,-97.1347,"CT7","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Guadalupe Generating Station",55153,"TX","Texas","Guadalupe County",29.6237,-98.1395,"CTG-3","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
-"Newman",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"**4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
+"Newman Power Station",3456,"TX","Texas","El Paso County",31.9858,-106.4322,"**4","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "Nacogdoches Generating Facility",55708,"TX","Texas","Nacogdoches County",31.8326,-94.9006,"BFB-1","Operating","Wood","Yes","Yes","Yes","Yes",2020
 "Lost Pines 1",55154,"TX","Texas","Bastrop County",30.1478,-97.27,"2","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020
 "San Jacinto County Peaking Facility",56603,"TX","Texas","San Jacinto County",30.42,-95.0114,"SJCCT1","Operating","Pipeline Natural Gas","Yes","Yes","Yes","Yes",2020

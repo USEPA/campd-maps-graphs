@@ -9,6 +9,7 @@ library(jsonlite)
 library(tidyverse)
 library(lubridate)
 library(zoo)
+library(sf)
 
 load_dot_env(".env")
 
@@ -56,13 +57,13 @@ startYears$startYear[which(startYears$programCode %in% c("CSOSG3"))] <- 2021
 startYears$startYear[which(startYears$programCode %in% c("TXSO2"))] <- 2019
 
 allAllowancePrograms$emissionYears[which(allAllowancePrograms$programCode == "ARP")] <- paste(
-  append(c(1980,1985,1990),seq(1995,get_latest_valid_vear(annualEmissionsUrl, c("ARP")))), collapse=',')
+  append(c(1980,1985,1990),seq(1995,get_latest_emission_valid_vear(quarterEmissionsPageUrl, c("ARP")))), collapse=',')
 allAllowancePrograms$complianceYears[which(allAllowancePrograms$programCode == "ARP")] <- paste(
   seq(1995,get_latest_valid_vear(compliancePageUrl, c("ARP"))), collapse=',')
 
 for (prg in allAllowancePrograms[allAllowancePrograms$retiredIndicator == FALSE,]$programCode){
   if(prg!="ARP"){
-    latestEmissionYear <- get_latest_valid_vear(annualEmissionsUrl, c(prg))
+    latestEmissionYear <- get_latest_emission_valid_vear(quarterEmissionsPageUrl, c(prg))
     latestComplianceYear <- get_latest_valid_vear(compliancePageUrl, c(prg))
     if(!is.na(latestEmissionYear)){
       allAllowancePrograms$emissionYears[which(allAllowancePrograms$programCode == prg)] <- 
@@ -105,8 +106,7 @@ write.csv(complianceFacilityDataLatestYear, file = paste0(getwd(),"/data/complia
 currentCompliancePrograms <- allAllowancePrograms[allAllowancePrograms$retiredIndicator == FALSE,]
 
 # Storing states 
-url <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)
-res = GET(url)
+res = GET(statesMdmUrl)
 states <- fromJSON(rawToChar(res$content))
 
 ### Collect applicable compliance data for program insights ###
@@ -121,10 +121,10 @@ applicableAllowCompTable = merge(x=applicableAllowCompTable,
                                  y=states[,c("stateCode","stateName")],
                                  by="stateCode",all.x=TRUE)
 
-stateYeayProgramApplicable <- unique(applicableAllowCompTable[,c("stateCode","programCode","year")])
+stateYearProgramApplicable <- unique(applicableAllowCompTable[,which(!(names(applicableAllowCompTable) %in% c("facilityId", "ownerOperator")))])
 
 write.csv(applicableAllowCompTable, file = paste0(getwd(),"/data/applicableAllowCompFacility.csv"), row.names = FALSE)
-write.csv(stateYeayProgramApplicable, file = paste0(getwd(),"/data/applicableAllowCompState.csv"), row.names = FALSE)
+write.csv(stateYearProgramApplicable, file = paste0(getwd(),"/data/applicableAllowCompState.csv"), row.names = FALSE)
 ######
 
 
@@ -164,6 +164,11 @@ unitData <- subset(unitData, select=-c(associatedStacks,epaRegion,nercRegion,cou
                                        commercialOperationDate,maxHourlyHIRate,
                                        associatedGeneratorsAndNameplateCapacity))
 
+
+unitData = merge(x=unitData,
+                 y=states[,c("stateCode","stateName")],
+                 by.x="stateCode")
+
 #unitData = merge(x=unitData, y=states[,c("stateCode","stateName")],
 #                 by="stateCode")
 
@@ -173,10 +178,11 @@ write.csv(unitData, file = "./data/unitData.csv", row.names = FALSE)
 
 ### Filter unit data to get condensed facility data ###
 
-programFacilityData <- unitData %>% select(stateCode, stateName, county, facilityId,
+programFacilityData <- unitData %>% select(stateCode, county, facilityId,
                                            facilityName, year, programCodeInfo,
                                            longitude, latitude)
 programFacilityData <- unique(programFacilityData)
+
 
 # convert program info for units to individual rows
 programFacilityDataByProgram <- bind_rows(lapply(unique(programFacilityData$facilityId), function(id){
