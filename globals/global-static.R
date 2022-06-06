@@ -3,6 +3,33 @@
 apiUrlBase <- Sys.getenv("API_url_base")
 apiKEY <- Sys.getenv("API_KEY")
 
+# GitHub raw base 
+gitRawBase <- "https://raw.githubusercontent.com/USEPA/campd-maps-graphs/testing"
+
+# annual emissions url
+annualEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/annual?API_KEY=",apiKEY)
+# ozone emissions url
+ozoneEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/ozone?API_KEY=",apiKEY)
+# allowance compliance stream url
+complianceUrl <- paste0(apiUrlBase,"/streaming-services/allowance-compliance?API_KEY=",apiKEY)
+# allowance compliance page url
+compliancePageUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?API_KEY=",apiKEY)
+# allowance compliance url
+complianceApplicableUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/attributes/applicable?api_key=",apiKEY)
+# facilities stream url
+facilitiesUrl <- paste0(apiUrlBase,"/streaming-services/facilities/attributes?API_KEY=",apiKEY)
+# facilities (applicable) url
+facilitiesApplicableUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/applicable?API_KEY=",apiKEY)
+# allowance holdings url
+allowanceHoldingsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-holdings?API_KEY=",apiKEY)
+# allowance transactions url
+allowanceTransactionsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-transactions?API_KEY=",apiKEY)
+# program mdm url
+programMdmUrl <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
+# program mdm url
+programMdmUrl <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
+
+
 # table to convert column name to appropriate lables for UI
 mulitLabelConversion <- data.frame(columnName=c("programDescription", 
                                                 "programCode", 
@@ -96,17 +123,13 @@ tableLabelConversion <- data.frame(columnName=c("programCode",
                                            "Percent Excess"))
 
 
-####### CSAPR Budgets #######
-state_budgets <- read.csv("./globals/csapr-state-assurance-levels.csv")
-
-
 # drop these states in shapefiles
 dropStates <- c("American Samoa", "American Samoa", 
                 "Commonwealth of the Northern Mariana Islands",
                 "Guam", "United States Virgin Islands")
 
 ####### County Search Data #######
-get_county_search_data <- function(shapefilepath){
+get_county_search_data <- function(shapefilepath, FIPSfilepath){
   
   USA <- st_read(dsn = shapefilepath)
   
@@ -117,7 +140,7 @@ get_county_search_data <- function(shapefilepath){
   
   county_sf <- st_as_sf(countyDF)
   
-  FIPS <- read.csv("./globals/stateFIPS.csv")
+  FIPS <- read.csv(FIPSfilepath)
   
   FIPS$FIPS <- formatC(FIPS$FIPS, width = 2, format = "d", flag = "0", big.mark = "-")
   
@@ -127,8 +150,6 @@ get_county_search_data <- function(shapefilepath){
   countyState
   
 }
-
-countyState <- get_county_search_data("./globals/cb_2018_us_county_5m.shp")
 
 ####### State Search Data #######
 get_state_search_data <- function(shapefilepath){
@@ -147,7 +168,8 @@ get_state_search_data <- function(shapefilepath){
   state_sf
 }
 
-state_sf <- get_state_search_data("./globals/cb_2018_us_state_5m.shp")
+countyStateSf <- get_county_search_data("./data/cb_2018_us_county_5m.shp","./data/stateFIPS.csv")
+stateSf <- get_state_search_data("./data/cb_2018_us_state_5m.shp")
 
 
 ## global functions
@@ -156,7 +178,6 @@ get_annual_emiss_data <- function(emissionYears, programs=NULL,
                                   unitType=NULL, unitFuelType=NULL, 
                                   states=NULL, facilities=NULL){
   
-  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual/stream?api_key=",apiKEY)
   query <- list(year=(paste0(emissionYears, collapse = '|')))
   
   if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
@@ -165,12 +186,9 @@ get_annual_emiss_data <- function(emissionYears, programs=NULL,
   if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  res = GET(url, query = query)
+  res = GET(annualEmissionsUrl, query = query)
+  annualEmissData <- fromJSON(rawToChar(res$content))
   
-  if (length(res$content) > 2){
-    annualEmissData <- fromJSON(rawToChar(res$content))
-  }
-  else(return(NULL))
   annualEmissData
 }
 
@@ -178,7 +196,6 @@ get_ozone_emiss_data <- function(emissionYears, programs=NULL,
                                   unitType=NULL, unitFuelType=NULL, 
                                   states=NULL, facilities=NULL){
   
-  url <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone/stream?api_key=",apiKEY)
   query <- list(year=(paste0(emissionYears, collapse = '|')))
   
   if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
@@ -187,30 +204,21 @@ get_ozone_emiss_data <- function(emissionYears, programs=NULL,
   if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  res = GET(url, query = query)
+  res = GET(ozoneEmissionsUrl, query = query)
+  annualEmissData <- fromJSON(rawToChar(res$content))
   
-  if (length(res$content) > 2){
-    annualEmissData <- fromJSON(rawToChar(res$content))
-  }
-  else(return(NULL))
   annualEmissData
 }
 
 get_facility_data <- function(years){
   
-  url <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/stream?api_key=",apiKEY)
   query <- list(year=(paste0(years, collapse = '|')))
   
-  res = GET(url, query = query)
+  res = GET(facilitiesUrl, query = query)
+  yearFacilityData <- fromJSON(rawToChar(res$content))
   
-  if (length(res$content) > 2){
-    yearFacilityData <- fromJSON(rawToChar(res$content))
-  }
-  else{retun(NULL)}
   yearFacilityData
 }
-
-#facilityData <- get_facility_data(1995,get_latest_valid_vear(facilitiesUrl))
 
 # API calls to get compliance data
 # format queryList - list(stateCode = paste0(c("AL"), collapse = '|'),programCodeInfo = paste0(c("ARP"), collapse = '|'))
@@ -218,34 +226,26 @@ get_facility_data <- function(years){
 get_allow_comp_data <- function(complianceYears, programs=NULL, 
                                 states=NULL, facilities=NULL){
   
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/stream?api_key=",apiKEY)
   query <- list(year=(paste0(complianceYears, collapse = '|')))
   
   if (!is.null(programs)){query <- append(query, list(programCodeInfo = (paste0(programs, collapse = '|'))))}
   if (!is.null(states)){query <- append(query, list(stateCode = (paste0(states, collapse = '|'))))}
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
-  res = GET(url, query = query)
+  res = GET(complianceUrl, query = query)
+  yearComplianceData <- fromJSON(rawToChar(res$content))
   
-  if (length(res$content) > 2){
-    yearComplianceData <- fromJSON(rawToChar(res$content))
-  }
-  else{return(NULL)}
   yearComplianceData
 }
 
 # API call to get allowance holdings info for a facility
 get_allow_holding_data <- function(facilityId){
   
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-holdings/stream?api_key=",apiKEY)
   query <- list(facilityId=facilityId)
   
-  res = GET(url, query = query)
+  res = GET(allowanceHoldingsUrl, query = query)
+  holdingData <- fromJSON(rawToChar(res$content))
   
-  if (length(res$content) > 2){
-    holdingData <- fromJSON(rawToChar(res$content))
-  }
-  else{return(NULL)}
   aggregate(totalBlock ~ programCodeInfo, 
             data = holdingData[c("programCodeInfo","totalBlock")], sum)
 }
@@ -254,19 +254,40 @@ get_allow_holding_data <- function(facilityId){
 get_transaction_data <- function(facilityId, transactionBeginDate,
                                  transactionEndDate){
   
-  url <- paste0(apiUrlBase,"/account-mgmt/allowance-transactions/stream?api_key=",apiKEY)
   query <- list(transactionBeginDate=transactionBeginDate,
                 transactionEndDate=transactionEndDate,
                 transactionType="Private Transfer",
                 facilityId=facilityId)
   
-  res = GET(url, query = query)
-  
-  if (length(res$content) > 2){
-    transactionData <- fromJSON(rawToChar(res$content))
-  }
-  else{return(NULL)}
+  res = GET(allowanceTransactionsUrl, query = query)
+  transactionData <- fromJSON(rawToChar(res$content))
   transactionData
+}
+
+# get latest year for an endpoint returning yearly data
+get_latest_valid_vear <- function(url, program=NULL){
+  latestYear <- as.integer(format(Sys.Date(), "%Y"))
+  baseQuery <- list(page="1",
+                    perPage="1")
+  runExit <- 0
+  
+  if (!is.null(program)){baseQuery <- append(baseQuery, list(programCodeInfo = program))}
+  query <- append(baseQuery, list(year=latestYear))
+  res = GET(url, query = query)
+  if (length(res$content) <= 2){
+    while(length(res$content) <= 2){
+      latestYear <- latestYear - 1
+      runExit <- runExit + 1
+      if (runExit > 2){
+        return(NA)
+        break
+      }
+      query <- append(baseQuery, list(year=latestYear))
+      res = GET(url, query = query)
+    }
+  }
+  
+  return(latestYear)
 }
 
 make_transaction_table <- function(transactionData, facilityId){
@@ -358,4 +379,3 @@ store_facility_data <- function(unitData){
   
   facilityTableForDownload
 }
-

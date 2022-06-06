@@ -24,6 +24,7 @@ programAppUI <- function(id){
 }
 
 programAppServer <- function(input, output, session) {
+  global_allowance_app_vars()
   callModule(allowancesBankedServer, "allowancesBankedTab")
   callModule(programBudgetsServer, "programBudgetsTab")
   callModule(resourcesServer, "resourcesTab")

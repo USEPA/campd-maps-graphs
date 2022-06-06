@@ -49,6 +49,7 @@ load_dot_env(".env")
 
 #globals
 source("./globals/global-static.R")
+source("./globals/global-reactive.R")
 source("./globals/global-load.R")
 source("./facility-map-app/global.R")
 source("./allowance-app/global.R")
@@ -75,6 +76,14 @@ ui <- function(request) {
     class="main-page",
     includeCSS("www/app.css"),
     includeScript('www/script.js'),
+    add_busy_spinner(
+      spin = "fading-circle",
+      color = "#112446",
+      timeout = 100,
+      position = c("full-page"),
+      height = "50px",
+      width = "50px"
+    ),
     # disconnect
     disconnectMessage(
       text = "Your session timed out! Please reload the application.",
@@ -90,6 +99,8 @@ ui <- function(request) {
 }
 
 server <- function(input, output, session) {
+  
+  global_vars()
   
   programsAppURL <- reactiveVal({""})
   facilityMapURL <- reactiveVal({""})
@@ -119,12 +130,11 @@ server <- function(input, output, session) {
     )})
   
   observe({
-    updateQueryString(facilityMapURL(), mode = "replace", session)
-    
+    updateQueryString(programsAppURL(), mode = "replace", session)
     output$page <- renderUI({
-      facilityMapAppUI("id")
+      programAppUI("id")
     })
-    callModule(facilityMapAppServer, "id")
+    callModule(programAppServer, "id")
   })
   
   observe({

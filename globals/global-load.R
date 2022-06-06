@@ -1,126 +1,74 @@
 
-## global values
-
-# Gett all programs and storing appropriate emission and compliance years
-url <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
-res = GET(url)
-allPrograms <- fromJSON(rawToChar(res$content))
-allPrograms$programDescription <- paste0(
-  allPrograms$programDescription, " (",
-  allPrograms$programCode, ")")
-
-# Get all allowance programs 
-allCompliancePrograms <- allPrograms[allPrograms$allowanceUIFilter == TRUE,]
-
-# adding emission and compliance year columns
-allCompliancePrograms["emissionYears"] <- NA
-allCompliancePrograms["complianceYears"] <- NA
-
-# global function
-get_latest_valid_vear <- function(url, program=NULL){
-  latestYear <- as.integer(format(Sys.Date(), "%Y"))
-  baseQuery <- list(page="1",
-                    perPage="1")
-  runExit <- 0
-  if (!is.null(program)){baseQuery <- append(baseQuery, list(programCodeInfo = program))}
-  query <- append(baseQuery, list(year=latestYear))
-  res = GET(url, query = query)
-  testYear <- fromJSON(rawToChar(res$content))
-  if ((length(testYear$statusCode) > 0 | length(testYear) == 0)){
-    while((length(testYear$statusCode) > 0 | length(testYear) == 0)){
-      latestYear <- latestYear - 1
-      runExit <- runExit + 1
-      if (runExit > 3){
-        return(NA)
-        break
-      }
-      query <- append(baseQuery, list(year=latestYear))
-      res = GET(url, query = query)
-      testYear <- fromJSON(rawToChar(res$content))
+global_vars <- function(){
+  
+  ## global values
+  
+  # Get all programs and storing appropriate emission and compliance years
+  res = GET(programMdmUrl)
+  allPrograms <- fromJSON(rawToChar(res$content))
+  allPrograms$programDescription <- paste0(
+    allPrograms$programDescription, " (",
+    allPrograms$programCode, ")")
+  
+  # Get all allowance programs 
+  compliancePrograms <- read.csv(paste0(gitRawBase,"/data/allowanceProgramData.csv"))
+  allCompliancePrograms <- compliancePrograms
+  
+  for (i in 1:nrow(allCompliancePrograms)){
+    if (!is.na(allCompliancePrograms$complianceYears[i])){
+      allCompliancePrograms$complianceYears[i] <- list(c(as.integer(unlist(strsplit(compliancePrograms$complianceYears[i], ",")))))
+    }
+    if (!is.na(allCompliancePrograms$emissionYears[i])){
+      allCompliancePrograms$emissionYears[i] <- list(c(as.integer(unlist(strsplit(compliancePrograms$emissionYears[i], ",")))))
     }
   }
   
-  return(latestYear)
+  currentCompliancePrograms <- allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]
+  
+  latestComplianceYear <- min(na.omit(unlist(lapply(currentCompliancePrograms$programCode, function(program){
+    max(unlist(currentCompliancePrograms$complianceYears[currentCompliancePrograms$programCode == program]))
+  }))))
+  
+  latestEmissionsYear <- min(na.omit(unlist(lapply(currentCompliancePrograms$programCode, function(program){
+    max(unlist(currentCompliancePrograms$emissionYears[currentCompliancePrograms$programCode == program]))
+  }))))
+  
+  descriptionTable <- currentCompliancePrograms[,c("programCode",
+                                                  "programDescription",
+                                                  "compParameterCode",
+                                                  "programGroupCode",
+                                                  "programGroupDescription")]
+  
+  
+  names(descriptionTable) <- c("Program Code",
+                                      "Full Program Name",
+                                      "Pollutant",
+                                      "Program Group",
+                                      "Program Group Description")
+  
+  
+  # Storing states 
+  url <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)
+  res = GET(url)
+  states <- fromJSON(rawToChar(res$content))
+  
+  # Unit data
+  unitDataLoad <- read.csv(file = paste0(gitRawBase,"/data/unitData.csv"))
+  unitData <<- merge(x=unitDataLoad, y=states[,c("stateCode","stateName")],
+                   by="stateCode")
+  
+  ####### assigning global values #######
+  programInfo$allPrograms <<- allPrograms
+  programInfo$allCompliancePrograms <<- allCompliancePrograms
+  programInfo$currentCompliancePrograms <<- currentCompliancePrograms
+  programInfo$descriptionTable <<- descriptionTable
+  programInfo$latestComplianceYear <<- latestComplianceYear
+  programInfo$latestEmissionsYear <<- latestEmissionsYear
+  
+  statesMdm <<- states
+  
 }
 
-# annual emissions url
-annualEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual?API_KEY=",apiKEY)
-# compliance url
-complianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?API_KEY=",apiKEY)
-# compliance url
-facilitiesUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/applicable?API_KEY=",apiKEY)
-
-# adding CAIR years
-allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode %in% c("CAIROS","CAIRNOX"))] <- list(c(seq(2008, 2014)))
-allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode %in% c("CAIRSO2"))] <- list(c(seq(2009, 2014)))
-allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode %in% c("CAIROS","CAIRNOX","CAIRSO2"))] <- list(c(seq(2009, 2014)))
-
-# adding CSAPR (retired)
-allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode %in% c("CSNOXOS"))] <- list(c(seq(2015, 2016)))
-allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode %in% c("CSNOXOS"))] <- list(c(seq(2015, 2016)))
-
-# adding NBP and OTC
-allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode %in% c("NBP"))] <- list(c(seq(2003, 2008)))
-allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode %in% c("NBP"))] <- list(c(seq(2003, 2008)))
-allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode %in% c("OTC"))] <- list(c(seq(1999, 2002)))
-allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode %in% c("OTC"))] <- list(c(seq(1999, 2002)))
-
-startYears <- as.data.frame(allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]$programCode)
-colnames(startYears) <- c('programCode')
-startYears["startYear"] <- NA
-startYears$startYear[which(startYears$programCode %in% c("CSNOX","CSSO2G1","CSSO2G2"))] <- 2015
-startYears$startYear[which(startYears$programCode %in% c("CSOSG1","CSOSG2"))] <- 2017
-startYears$startYear[which(startYears$programCode %in% c("CSOSG3"))] <- 2021
-startYears$startYear[which(startYears$programCode %in% c("TXSO2"))] <- 2019
-
-allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode == "ARP")] <- list(
-  (append(c(1980,1985,1990),seq(1995,get_latest_valid_vear(annualEmissionsUrl, c("ARP"))))))
-allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode == "ARP")] <- list(
-  (seq(1995,get_latest_valid_vear(complianceUrl, c("ARP")))))
-
-# Only current programs
-
-'emissYearBinding <- lapply(allCompliancePrograms[(allCompliancePrograms$retiredIndicator == FALSE & allCompliancePrograms$programCode != "ARP"),]$programCode, function(prg){
-  latestEmissionYear <- get_latest_valid_vear(annualEmissionsUrl, c(prg))
-  if(!is.na(latestEmissionYear)){
-    yearList<-list(seq(startYears$startYear[startYears$programCode==prg],
-                       latestEmissionYear))}
-  cbind(prg,yearList)
-})'
-
-for (prg in allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]$programCode){
-  if(prg!="ARP"){
-    latestEmissionYear <- get_latest_valid_vear(annualEmissionsUrl, c(prg))
-    latestComplianceYear <- get_latest_valid_vear(complianceUrl, c(prg))
-    if(!is.na(latestEmissionYear)){
-      allCompliancePrograms$emissionYears[which(allCompliancePrograms$programCode == prg)] <- 
-        list(seq(startYears$startYear[startYears$programCode==prg],
-                 latestEmissionYear))
-    }
-    if(!is.na(latestComplianceYear)){
-      allCompliancePrograms$complianceYears[which(allCompliancePrograms$programCode == prg)] <- 
-        list(seq(startYears$startYear[startYears$programCode==prg],
-                 latestComplianceYear))
-    }
-  }
-}
-
-currentCompliancePrograms <- allCompliancePrograms[allCompliancePrograms$retiredIndicator == FALSE,]
-
-latestComplianceYear <- min(na.omit(unlist(lapply(currentCompliancePrograms$programCode, function(program){
-  max(unlist(currentCompliancePrograms$complianceYears[currentCompliancePrograms$programCode == program]))
-}))))
-
-latestEmissionsYear <- min(na.omit(unlist(lapply(currentCompliancePrograms$programCode, function(program){
-  max(unlist(currentCompliancePrograms$emissionYears[currentCompliancePrograms$programCode == program]))
-}))))
-
-# Get compliance data for ARP
-
-# Storing states 
-url <- paste0(apiUrlBase,"/master-data-mgmt/states?API_KEY=",apiKEY)
-res = GET(url)
-states <- fromJSON(rawToChar(res$content))
 
 # Storing control technologies
 #url <- paste0(apiUrlBase,"/master-data-mgmt/control-technologies?API_KEY=",apiKEY)

@@ -5,16 +5,6 @@ programBudgetsUI <- function(id){
   tagList(
     fluidPage(
       tags$head(HTML("<title>Program Budgets</title>")), 
-      add_busy_spinner(
-        spin = "half-circle",
-        color = "#112446",
-        timeout = 100,
-        position = c("top-right"),
-        onstart = TRUE,
-        margins = c(10, 10),
-        height = "50px",
-        width = "50px"
-      ),
       h1("Program Budgets"),
       fluidRow(column(12, 
                       tags$ul(
@@ -45,7 +35,7 @@ programBudgetsUI <- function(id){
       ),
       sidebarLayout(
         sidebarPanel(h2("Filters"),
-                     rowFilterPlaceholderSingleSelectSetUI(ns("filterset"), programBudgetFilterIndicesState),
+                     rowFilterPlaceholderSingleSelectSetUI(ns("filterset"), filterIndices$programBudget),
                      
                      div(class="clear-preview-btns",
                          actionButton(ns("clearFilters"), "Clear Filters"),
@@ -67,12 +57,12 @@ programBudgetsServer <- function(input, output, session) {
     stop_gif()
   })
   
-  budgetDataFrame <- reactive({state_budgets})
+  budgetDataFrame <- reactive({csaprStateBudgets})
   
   filtered_data <- callModule(columnFilterPlaceholderSingleSelectSet, 
                               "filterset", 
                               df = budgetDataFrame, 
-                              programBudgetFilterIndicesState,
+                              filterIndices$programBudget,
                               reactive(c(input$clearFilters)))
   
   choices <- reactiveValues(selectedProgram=NULL,
@@ -95,7 +85,7 @@ programBudgetsServer <- function(input, output, session) {
     yearSelect <- as.integer(filtered_data$selections[["year"]])
     assuranceIncluded <- filtered_data$selections[["assuranceFlag"]]
     
-    if (programCodeSelect %in% c(noxAnnualPrograms, so2AnnualPrograms)){
+    if (programCodeSelect %in% c(csaprPrograms$noxAnnual, csaprPrograms$so2Annual)){
       emissionsData <- get_annual_emiss_data(emissionYears = c(yearSelect), programs = c(programCodeSelect))
     }
     else{
@@ -105,15 +95,15 @@ programBudgetsServer <- function(input, output, session) {
     aggregateEmissions <- aggregate(cbind(so2Mass,noxMass) ~ stateCode + year, data = emissionsData, FUN = sum, na.rm = TRUE)
     aggregateEmissions$programCode <- programCodeSelect
     budgetEmissions <- merge(x=aggregateEmissions,
-                             y=state_budgets,
+                             y=csaprStateBudgets,
                              by=c("stateCode", "year", "programCode"))
     
     if (assuranceIncluded == "yes"){
       budgetData <- budgetEmissions %>% 
-        mutate(allowEmissRatio = if_else((programCode %in% so2AnnualPrograms), 
+        mutate(allowEmissRatio = if_else((programCode %in% csaprPrograms$so2Annual), 
                                          assuranceLevel/ceiling(so2Mass),
                                          assuranceLevel/ceiling(noxMass)),
-               excessAllow = if_else((programCode %in% so2AnnualPrograms), 
+               excessAllow = if_else((programCode %in% csaprPrograms$so2Annual), 
                                      assuranceLevel - ceiling(so2Mass), 
                                      assuranceLevel - ceiling(noxMass)), 
                percentExcess = excessAllow/assuranceLevel*100)
@@ -121,16 +111,16 @@ programBudgetsServer <- function(input, output, session) {
     
     else{
       budgetData <- budgetEmissions %>% 
-        mutate(allowEmissRatio = if_else((programCode %in% so2AnnualPrograms), 
+        mutate(allowEmissRatio = if_else((programCode %in% csaprPrograms$so2Annual), 
                                          allocated/ceiling(so2Mass),
                                          allocated/ceiling(noxMass)),
-               excessAllow = if_else((programCode %in% so2AnnualPrograms), 
+               excessAllow = if_else((programCode %in% csaprPrograms$so2Annual), 
                                      allocated - ceiling(so2Mass), 
                                      allocated - ceiling(noxMass)), 
                percentExcess = excessAllow/allocated*100)
     }
     
-    if (programCodeSelect %in% so2AnnualPrograms){
+    if (programCodeSelect %in% csaprPrograms$so2Annual){
       budgetTableData <- budgetData %>% select(year, programCode, stateName, 
                                                so2Mass, allocated,
                                                variabilityLimit, assuranceLevel,

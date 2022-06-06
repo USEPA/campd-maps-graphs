@@ -1,23 +1,18 @@
 
 # data for usage
 
-# calls of functions for global variables
-
-programfacilityData <- read.csv(file = paste0(getwd(),"/globals/programFacilityData.csv"))
-
-facilityFilterIndices <- match(c("programCode","stateName","facilityName")
-                               ,names(programfacilityData))
-
-searchFilterIndices <- match(c("stateName","countyName")
-                             ,names(countyState))
+global_fac_map_vars <- function(){
+  programFacilityData <<- read.csv(file = paste0(gitRawBase,"/data/programFacilityData.csv"))
+  
+}
 
 filter_facility_latlong_data <- function(facilityData){
   unique(facilityData[,c("facilityId","stateCode","stateName","county","facilityName","longitude","latitude")])
 }
 
 makecomplianceDataTableForDownload <- function(){
-  allYearComplianceFacilityData <- read.csv(file = paste0(getwd(),"/globals/allYearComplianceFacilityData.csv"))
-  complianceFacilityDataLatest <- read.csv(file = paste0(getwd(),"/globals/complianceFacilityDataLatestYear.csv"))
+  allYearComplianceFacilityData <- read.csv(file = paste0(gitRawBase,"/data/allYearAllowanceFacilityData.csv"))
+  complianceFacilityDataLatest <- read.csv(file = paste0(gitRawBase,"/data/complianceFacilityDataLatestYear.csv"))
   
   complianceFacilityDataLatestFormat <- bind_rows(lapply(1:nrow(complianceFacilityDataLatest), function(row){
     if (is.na(complianceFacilityDataLatest$excessEmissions[row])){

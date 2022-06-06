@@ -1,31 +1,10 @@
 ## Resources Page
 
-programDescriptionTable <- currentCompliancePrograms[,c("programCode",
-                                                        "programDescription",
-                                                        "compParameterCode",
-                                                        "programGroupCode",
-                                                        "programGroupDescription")]
-names(programDescriptionTable) <- c("Program Code",
-                                    "Full Program Name",
-                                    "Pollutant",
-                                    "Program Group",
-                                    "Program Group Description")
-
 resourcesUI <- function(id) {
   ns <- NS(id)
   tagList(
     fluidPage(
       tags$head(HTML("<title>Resouces</title>")), 
-      add_busy_spinner(
-        spin = "half-circle",
-        color = "#112446",
-        timeout = 100,
-        position = c("top-right"),
-        onstart = TRUE,
-        margins = c(10, 10),
-        height = "50px",
-        width = "50px"
-      ),
       h1("Program Insights Resources"),
       p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
            sed do eiusmod tempor incididunt ut labore et dolore 
@@ -38,7 +17,7 @@ resourcesUI <- function(id) {
            laborum."),
       h2("Program Code Descriptions"),
       p("Below is a table of information for CAMD's allowance based programs."),
-      div(class="resource-table",HTML(getHTML(programDescriptionTable))),
+      div(class="resource-table",HTML(getHTML(programInfo$descriptionTable))),
       h2("CSAPR State Budgets, Variability Limits, and Assurance Provisions"),
       p("Please visit ",
         tags$a(href="https://www.epa.gov/csapr/cross-state-air-pollution-rule-csapr-state-budgets-variability-limits-and-assurance", 

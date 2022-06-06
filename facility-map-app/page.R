@@ -15,16 +15,6 @@ facilityMapAppUI <- function(id){
       
       tags$main(h1("Welcome to the Facility Map!")),
       tags$head(HTML("<title>Facility Map</title>")), 
-      add_busy_spinner(
-        spin = "half-circle",
-        color = "#112446",
-        timeout = 100,
-        position = c("top-right"),
-        onstart = TRUE,
-        margins = c(10, 10),
-        height = "50px",
-        width = "50px"
-      ),
       h2("Getting Started"),
       p(class="intro-text","This facility map uses data collected as part of 
       EPA's allowance trading programs. Interested in exploring the data 
@@ -36,7 +26,7 @@ facilityMapAppUI <- function(id){
       p(class="intro-text","Click on a ",
         tags$img(src='https://unpkg.com/leaflet@1.3.1/dist/images/marker-icon-2x.png', 
                  width='20px',height='35px',alt = "facility marker"),
-        " on the map to view a facility's attribute and, 
+        " on the map to view a facility's attribute and 
         program compliance information using the map's side panel ",
         '"Facility Summary" and "Compliance Summary" expandable boxes.'),
       div(class="bullet-title","Using the Map"),
@@ -50,16 +40,16 @@ facilityMapAppUI <- function(id){
         tags$li('Use the facility filter to narrow down facilities by trading program.'),
         tags$li('Use the clear buttons to clear filters or searches.'),
         tags$li(paste0('Facility Summary displays basic facility/unit attribute information 
-                for the ',as.character(latestComplianceYear),' operating year.')),
+                for the ',as.character(programInfo$latestComplianceYear),' operating year.')),
         tags$li(paste0('Compliance Summary displays compliance information for 
                 programs applicable to the chosen facility for ',
-                as.character(latestComplianceYear),' and 
+                as.character(programInfo$latestComplianceYear),' and 
                 any previous years the facility was non-compliant.')),
       ),
       p(class="intro-text","Use the download buttons below to save the data available in the map."),
       div(class="grid-container",
-          div(class="grid-item",downloadButton(ns("download_facility_data"),"Download Facility Data")),
-          div(class="grid-item",downloadButton(ns("download_compliance_data"),"Download Compliance Data"))),
+          div(class="grid-item",downloadButton(ns("download_facility_data"),"Download Facility Data CSV")),
+          div(class="grid-item",downloadButton(ns("download_compliance_data"),"Download Compliance Data CSV"))),
       tags$hr(),
       p(class="intro-text","For more information on these programs visit",
         tags$a(href="https://www.epa.gov/airmarkets/programs", 
@@ -84,14 +74,14 @@ facilityMapAppUI <- function(id){
                             searchUI(ns('stateSearchInput'), 
                                      placeholder='--search by state-- ', 
                                      label='State Name',
-                                     df=state_sf, 
+                                     df=stateSf, 
                                      group="", 
                                      items='stateName')),
                      column(5,
                             searchUI(ns('countySearchInput'), 
                                      placeholder='--search by county-- ', 
                                      label='County Name',
-                                     df=countyState, 
+                                     df=countyStateSf, 
                                      group='stateName', 
                                      items='countyName'))
                      ),
@@ -114,7 +104,7 @@ facilityMapAppUI <- function(id){
                         ),
                         fluidRow(column(10,selectizeInput(ns("programSelection"), 
                                                           label=facilityMapLabelConversion$label[facilityMapLabelConversion$columnName == "programCode"],
-                                                          choices=c("Select All",unique(na.omit(programfacilityData$programCode))),
+                                                          choices=c("Select All",unique(na.omit(programFacilityData$programCode))),
                                                           selected=c("Select All"),
                                                           multiple = FALSE))),
                         div(class="select-clear", actionButton(ns("clearFilters"), "Clear Filters"))
@@ -149,11 +139,12 @@ facilityMapAppUI <- function(id){
 
 facilityMapAppServer <- function(input, output, session) {
   
-  unitData <- read.csv(file = paste0(getwd(),"/globals/unitData.csv"))
+  global_fac_map_vars()
+  
   facilityDataTableForDownload <- store_facility_data(unitData)
   
   output$download_facility_data <- downloadHandler(
-    filename =  function() { paste0("facility-data-",as.character(latestComplianceYear),".csv") },
+    filename =  function() { paste0("facility-data-",as.character(programInfo$latestComplianceYear),".csv") },
     content = function(file) {
       write.csv(facilityDataTableForDownload, file, row.names = FALSE)
     }
@@ -166,17 +157,17 @@ facilityMapAppServer <- function(input, output, session) {
   )
   
   # State and county searches
-  reactiveCountySearch <- reactive({countyState})
+  reactiveCountySearch <- reactive({countyStateSf})
   stateFilterVal <- reactiveVal({NULL})
   countyFilterVal <- reactiveVal({NULL})
-  markerData <- reactiveVal({programfacilityData})
+  markerData <- reactiveVal({programFacilityData})
   
   stateSearch <- callModule(searchServer,"stateSearchInput",
-                            state_sf,reactive(c(input$clearSearch)),
+                            stateSf,reactive(c(input$clearSearch)),
                             filterBy='stateName',
                             filterVal=reactive(c()))
   coutSearch <- callModule(searchServer,"countySearchInput",
-                           countyState,reactive(c(input$clearSearch)),
+                           countyStateSf,reactive(c(input$clearSearch)),
                            filterBy='stateName',
                            filterVal=stateFilterVal)
   
@@ -187,7 +178,7 @@ facilityMapAppServer <- function(input, output, session) {
       stateFilterVal(NULL)
       stateFilterVal(stateSearch()$stateName)
       # display county outline and zoom to location
-      update_map_search(markerData(),state_sf,stateSearch(),'stateName','stateOutline')
+      update_map_search(markerData(),stateSf,stateSearch(),'stateName','stateOutline')
       # clear program filter
       #updateSelectizeInput(
       #  session = session,
@@ -202,7 +193,7 @@ facilityMapAppServer <- function(input, output, session) {
       countyFilterVal(NULL)
       countyFilterVal(coutSearch()$stateName)
       # display county outline and zoom to location
-      update_map_search(markerData(),countyState,coutSearch(),'countyns','countyOutline')
+      update_map_search(markerData(),countyStateSf,coutSearch(),'countyns','countyOutline')
     }
   },ignoreInit = TRUE)
   # If something is selected in one of the searches, the map is cleared and
@@ -213,7 +204,7 @@ facilityMapAppServer <- function(input, output, session) {
         update_full_map(markerData())
       }
       else{
-        shapeFileData <- state_sf[state_sf$stateName %in% unique(markerData()$stateName),]
+        shapeFileData <- stateSf[stateSf$stateName %in% unique(markerData()$stateName),]
         
         update_map_filter_selections(markerData(),shapeFileData)
       }
@@ -225,19 +216,19 @@ facilityMapAppServer <- function(input, output, session) {
   observeEvent(input$programSelection,{
     if (length(input$programSelection) != 0){
       if (input$programSelection != "Select All"){
-        markerData(filter_facility_latlong_data(programfacilityData[programfacilityData$programCode == input$programSelection,]))
+        markerData(filter_facility_latlong_data(programFacilityData[programFacilityData$programCode == input$programSelection,]))
         
         if ((nrow(stateSearch()) != 0) | (nrow(coutSearch()) != 0)){
           update_map_with_shape_maintained(markerData())
         }
         else{
-          shapeFileData <- state_sf[state_sf$stateName %in% unique(markerData()$stateName),]
+          shapeFileData <- stateSf[stateSf$stateName %in% unique(markerData()$stateName),]
           
           update_map_filter_selections(markerData(),shapeFileData)
         }
       }
       else{
-        markerData(filter_facility_latlong_data(programfacilityData))
+        markerData(filter_facility_latlong_data(programFacilityData))
         if ((nrow(stateSearch()) != 0) | (nrow(coutSearch()) != 0)){
           update_map_with_shape_maintained(markerData())
         }
@@ -252,7 +243,7 @@ facilityMapAppServer <- function(input, output, session) {
   observeEvent(input$clearFilters,{
     if (length(input$programSelection) != 0){
       if (input$programSelection != "Select All"){
-        markerData(filter_facility_latlong_data(programfacilityData))
+        markerData(filter_facility_latlong_data(programFacilityData))
         if ((nrow(stateSearch()) != 0) | (nrow(coutSearch()) != 0)){
           update_map_with_shape_maintained(markerData())
         }
@@ -278,13 +269,18 @@ facilityMapAppServer <- function(input, output, session) {
   
   # Initialize leaflet
   output$map <- renderLeaflet({
-    mapData <- filter_facility_latlong_data(programfacilityData)
-    legendText <- tagList(p(div("The numbers inside the marker"),
-                          div("clusters (purple circles)"),
-                          div("indicate the amount of facilities"),
-                          div("in that general area.")),
-                          p(div("The facility markers"),
-                          div("indicate one facility.")))
+    mapData <- filter_facility_latlong_data(programFacilityData)
+    legendText <- tagList(div(class="grid-container",
+                              div(class="grid-item",
+                                tags$img(src='https://raw.githubusercontent.com/USEPA/campd-maps-graphs/testing/www/cluster.png', 
+                                     width='27px',height='27px',alt = "facility cluster marker")),
+                          div(class="grid-item",style="text-align: left;",div("indicates the amount of"),
+                          div("facilities in that general area"))),
+                          div(class="grid-container",
+                              div(class="grid-item",
+                                  tags$img(src='https://unpkg.com/leaflet@1.3.1/dist/images/marker-icon-2x.png',
+                                         width='20px',height='35px',alt = "facility marker",style="margin-left:3px;margin-right:3px;")),
+                              div(class="grid-item",style="text-align: left;margin: auto;",div("indicates one facility"))))
     leaflet() %>%
       addTiles() %>% 
       fitBounds(lng1 = min(na.omit(mapData$longitude))-1.5, 
@@ -491,7 +487,7 @@ facilityMapAppServer <- function(input, output, session) {
   # Show a popup at the given location
   showFacInfoPopup <- function(fac_id, lat, lng) {
     # Pick first row of unit data
-    selectedFac <- unique(programfacilityData[programfacilityData$facilityId == fac_id,c("facilityName","county","stateCode","stateName")])
+    selectedFac <- unique(programFacilityData[programFacilityData$facilityId == fac_id,c("facilityName","county","stateCode","stateName")])
     content <- as.character(
       tagList(
         tags$h4(selectedFac$facilityName),
@@ -509,7 +505,7 @@ facilityMapAppServer <- function(input, output, session) {
   get_facility_info_for_side_panel <- function(facilityId){
     
     selectedUnitFac <- unitData[unitData$facilityId == facilityId,]
-    selectedFac <- unique(programfacilityData[programfacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
+    selectedFac <- unique(programFacilityData[programFacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
     fuelTypesStg <- paste0(unique(unitData$primaryFuelInfo[unitData$facilityId == facilityId]),collapse = ", ")
     operatingStatuses <- paste0(lapply(selectedUnitFac$unitId,function(unit){
       paste0("<strong>",unit,"</strong>",": ",selectedUnitFac$operatingStatus[selectedUnitFac$unitId == unit])
@@ -558,15 +554,15 @@ facilityMapAppServer <- function(input, output, session) {
   
   get_compliance_info_for_side_panel <- function(facilityId){
     
-    selectedFac <- unique(programfacilityData[programfacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
-    complianceFacilityData <- get_allow_comp_data(latestComplianceYear,facilities=c(facilityId))
+    selectedFac <- unique(programFacilityData[programFacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
+    complianceFacilityData <- get_allow_comp_data(programInfo$latestComplianceYear,facilities=c(facilityId))
     
     accountNumber <- as.character(complianceFacilityData$accountNumber[1])
     if (length(accountNumber) == 0){
       accountNumber <- "No account associated with this facility."
     }
     
-    if(is.null(complianceFacilityData)){
+    if(length(complianceFacilityData)==0){
       subjectedPrograms <- "This facility is not subjected to CAMD's Allowance-based programs."
       complianceDisplayTable <- ""
       outOfComplianceTable <- ""
@@ -586,35 +582,34 @@ facilityMapAppServer <- function(input, output, session) {
       }))
       
       complianceDisplayTable <- tagList(
-        tags$h5(tags$u(paste0("Compliance for ",latestComplianceYear,":"))),
+        tags$h5(tags$u(paste0("Compliance for ",programInfo$latestComplianceYear,":"))),
         HTML(getHTML(compTableForLatestYear))
       )
       
-      complianceYears <- unique(na.omit(unlist(allCompliancePrograms$complianceYears)))
+      complianceYears <- as.list(unique(na.omit(unlist(programInfo$allCompliancePrograms$complianceYears))))
       
       allYearComplianceFacilityData <- get_allow_comp_data(complianceYears,facilities=c(facilityId))
       
-      compYearsOutOfComp <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
-        if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
-          c("Program"=allYearComplianceFacilityData$programCodeInfo[row], 
-            "Year"=allYearComplianceFacilityData$year[row],
-            "In compliance?"="No")
-        }
-      }))
-      
-      if(nrow(compYearsOutOfComp) == 0){
-        outOfComplianceTable <- HTML("<br>This facility has no record of being out of compliance.")
+      if(nrow(allYearComplianceFacilityData) == 0){
+        outOfComplianceTable <- HTML("<br>This facility has no other record of non-compliance")
       }
       else{
+        compYearsOutOfComp <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
+          if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
+            c("Program"=allYearComplianceFacilityData$programCodeInfo[row], 
+              "Year"=allYearComplianceFacilityData$year[row],
+              "In compliance?"="No")
+          }
+        }))
         outOfComplianceTable <- tagList(
           tags$h5(tags$u("Non-Compliant Years:")),
           HTML(getHTML(compYearsOutOfComp)),
-          tags$p("All other years the facility was in compliance.")
+          tags$p("All other years for this facility were compliant.")
         )
       }
       
-      'beginDate <- paste0(latestComplianceYear,"-01-01")
-      endDate <- paste0(latestComplianceYear,"-12-31")
+      'beginDate <- paste0(programInfo$latestComplianceYear,"-01-01")
+      endDate <- paste0(programInfo$latestComplianceYear,"-12-31")
       transactionData <- get_transaction_data(facilityId,beginDate,endDate)
       if(is.null(transactionData)){
         transactionDisplayTable <- ""

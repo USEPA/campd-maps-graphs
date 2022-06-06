@@ -121,7 +121,10 @@ applicableAllowCompTable = merge(x=applicableAllowCompTable,
                                  y=states[,c("stateCode","stateName")],
                                  by="stateCode",all.x=TRUE)
 
-write.csv(applicableAllowCompTable, file = paste0(getwd(),"/data/applicableAllowCompTable.csv"), row.names = FALSE)
+stateYeayProgramApplicable <- unique(applicableAllowCompTable[,c("stateCode","programCode","year")])
+
+write.csv(applicableAllowCompTable, file = paste0(getwd(),"/data/applicableAllowCompFacility.csv"), row.names = FALSE)
+write.csv(stateYeayProgramApplicable, file = paste0(getwd(),"/data/applicableAllowCompState.csv"), row.names = FALSE)
 ######
 
 
@@ -129,7 +132,26 @@ write.csv(applicableAllowCompTable, file = paste0(getwd(),"/data/applicableAllow
 ARPComplianceData <- get_allow_comp_data(unlist(currentCompliancePrograms[currentCompliancePrograms$programCode %in%
                                                        c("ARP"),]$complianceYears),
                                          programs=c("ARP"))
-write.csv(ARPComplianceData, file = paste0(getwd(),"/data/ARPComplianceData.csv"), row.names = FALSE)
+aggregatedARPData <- aggregate(ARPComplianceData[,c("allocated", 
+                                                  "totalAllowancesDeducted",
+                                                  "carriedOver")],
+                            list(ARPComplianceData$programCode,
+                                 ARPComplianceData$stateCode,
+                                 ARPComplianceData$year),
+                            sum)
+colnames(aggregatedARPData)[1:3] <- c("programCode",
+                                   "stateCode",
+                                   "year")
+aggregatedARPData = merge(x=aggregatedARPData,
+                       y=states[,c("stateCode","stateName")],
+                       by.x="stateCode")
+aggregatedARPData = merge(x=aggregatedARPData,
+                          y=currentCompliancePrograms[,c("programCode",
+                                                         "programDescription")],
+                          by.x="programCode")
+
+write.csv(ARPComplianceData, file = paste0(getwd(),"/data/ARPComplianceData-FacilityLevel.csv"), row.names = FALSE)
+write.csv(aggregatedARPData, file = paste0(getwd(),"/data/ARPComplianceData-StateLevel.csv"), row.names = FALSE)
 ######
 
 
@@ -137,8 +159,13 @@ write.csv(ARPComplianceData, file = paste0(getwd(),"/data/ARPComplianceData.csv"
 #### Unit data for latest compliance year ###
 unitData <- get_facility_data(latestComplianceYear)
 
-unitData = merge(x=unitData, y=states[,c("stateCode","stateName")],
-                 by="stateCode")
+unitData <- subset(unitData, select=-c(associatedStacks,epaRegion,nercRegion,countyCode,
+                                       fipsCode,sourceCategory,so2Phase,noxPhase,
+                                       commercialOperationDate,maxHourlyHIRate,
+                                       associatedGeneratorsAndNameplateCapacity))
+
+#unitData = merge(x=unitData, y=states[,c("stateCode","stateName")],
+#                 by="stateCode")
 
 write.csv(unitData, file = "./data/unitData.csv", row.names = FALSE)
 ######
@@ -172,8 +199,6 @@ programFacilityDataByProgram = merge(x=programFacilityDataByProgram,
                             by="programCode",all.x=TRUE)
 
 write.csv(programFacilityDataByProgram, file = "./data/programFacilityData.csv", row.names = FALSE)
-
-
 
 
 ### Collect facility data for all years ###

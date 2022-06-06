@@ -5,22 +5,11 @@ allowancesBankedUI <- function(id) {
   tagList(
     fluidPage(
       tags$head(HTML("<title>Allowance Trends</title>")), 
-      add_busy_spinner(
-        spin = "half-circle",
-        color = "#112446",
-        timeout = 100,
-        position = c("top-right"),
-        onstart = TRUE,
-        margins = c(10, 10),
-        height = "50px",
-        width = "50px"
-      ),
       h1("Allowance Trends"),
       fluidRow(
         column(12, p("This tool uses annual compliance data to visualize historical 
             trends in allowances allocated, deducted, and banked for active 
             allowance trading programs operated by EPA's Clean Air Markets Division.")),
-        #column(2, actionButton(ns("stopanimation"), "Stop Animation"))
         ),
       sidebarLayout(
       sidebarPanel(width=3,
@@ -35,12 +24,12 @@ allowancesBankedUI <- function(id) {
                      dropdownSelectUI(ns("programInput"), 
                                       label= paste0("2. ",singleLabelConversion$label[singleLabelConversion$columnName == "programDescription"]),
                                       placeholder_label= "--select program--",
-                                      choices= sort(unique(currentCompliancePrograms$programCode[!is.na(currentCompliancePrograms$complianceYears)])))
+                                      choices= sort(unique(programInfo$currentCompliancePrograms$programCode[!is.na(programInfo$currentCompliancePrograms$complianceYears)])))
                      ),
                    conditionalPanel(
                      condition = "input.levelOfAnalysis == 's'", ns = ns,
                      columnFilterSetUI(ns("filterset"), 
-                                       allowanceBankFilterIndicesState
+                                       filterIndices$allowanceBank
                                        )
                               
                      ),
@@ -60,19 +49,14 @@ allowancesBankedUI <- function(id) {
 
 
 allowancesBankedServer <- function(input, output, session) {
-  observeEvent(input$stopanimation, {
-    stop_gif()
-  })
   
-  ARPComplianceData <- read.csv(file = paste0(getwd(),"/globals/ARPComplianceData.csv"))
-  
-  selectedDataSet <- reactive({applicableAllowCompTable})
+  selectedDataSet <- reactive({applicableAllowanceCompliance$data})
   choices <- reactiveValues(programsSelected=NULL,
                             statesSelected=NULL)
     
   filterSetReturn <- callModule(columnFilterSet, "filterset", 
                                 df = selectedDataSet, 
-                                allowanceBankFilterIndicesState,
+                                filterIndices$allowanceBank,
                                 reactive(c(input$clearFilters)),
                                 startIndexAdd = 1,
                                 programIsSingleSelect=TRUE)
@@ -106,7 +90,7 @@ allowancesBankedServer <- function(input, output, session) {
     #programsSelected <- currentCompliancePrograms$programCode[currentCompliancePrograms$programDescription %in% 
     #                                          choices$programsSelected]
     programsSelected <- choices$programsSelected
-    statesSelected <- states$stateCode[states$stateName %in% choices$statesSelected]
+    statesSelected <- statesMdm$stateCode[statesMdm$stateName %in% choices$statesSelected]
     
     if (length(programsSelected) == 0){
       if (input$levelOfAnalysis == "s"){
@@ -126,7 +110,7 @@ allowancesBankedServer <- function(input, output, session) {
       return()
     }
     
-    complianceYears <- currentCompliancePrograms[currentCompliancePrograms$programCode %in%
+    complianceYears <- programInfo$currentCompliancePrograms[programInfo$currentCompliancePrograms$programCode %in%
                                                    programsSelected,]$complianceYears
     minimumYear <- min(unlist(complianceYears))
     maximumYear <- max(unlist(complianceYears))
@@ -134,10 +118,10 @@ allowancesBankedServer <- function(input, output, session) {
     # Get everything aggregated to the state and
     #   fix allowances per csapr and arp
     
-    csaprAllocations <- unique(subset(state_budgets, select = -c(assuranceFlag, variabilityLimit, assuranceLevel, programDescription)))
+    csaprAllocations <- unique(subset(csaprStateBudgets, select = -c(assuranceFlag, variabilityLimit, assuranceLevel, programDescription)))
     
     csaprAllocations <- csaprAllocations[csaprAllocations$programCode %in% programsSelected & 
-                                           csaprAllocations$year <= latestComplianceYear,]
+                                           csaprAllocations$year <= programInfo$latestComplianceYear,]
     
     
     if (input$levelOfAnalysis == "s"){
@@ -151,20 +135,23 @@ allowancesBankedServer <- function(input, output, session) {
       }
       
       if (programsSelected == "ARP"){
-        facilityComplianceData <- ARPComplianceData[ARPComplianceData$stateCode %in% statesSelected,]
+        if (is.null(ARPComplianceData$stateLevel)){
+          load_ARP_data()
+        }
+        aggregatedComplianceData <- ARPComplianceData$stateLevel[ARPComplianceData$stateLevel$stateCode %in% statesSelected,]
       }
       else {
         facilityComplianceData <- get_allow_comp_data(
           complianceYears = seq(minimumYear,maximumYear),
           programs = programsSelected, states = statesSelected)
+        
+        aggregatedComplianceData <- getStatePlotData(facilityComplianceData,
+                                                     c("allocated", 
+                                                       "totalAllowancesDeducted",
+                                                       "carriedOver"))
       }
       
-      aggregatedComplianceData <- getStatePlotData(facilityComplianceData,
-                                                   c("allocated", 
-                                                     "totalAllowancesDeducted",
-                                                     "carriedOver"))
-      
-      if (programsSelected %in% unique(state_budgets$programCode)){
+      if (programsSelected %in% unique(csaprStateBudgets$programCode)){
         aggregatedComplianceData <- merge(csaprAllocations[,c("stateName","programCode","year","allocated")],
               subset(aggregatedComplianceData, select =-c(allocated) ),
               by=c("stateName","programCode","year"))
@@ -255,36 +242,40 @@ allowancesBankedServer <- function(input, output, session) {
           return()
       }
       
+      complianceColumns <- c("allocated", 
+                             "totalAllowancesDeducted",
+                             "carriedOver")
+      
       if (programsSelected == "ARP"){
-        facilityComplianceData <- ARPComplianceData 
+        if (is.null(ARPComplianceData$stateLevel)){
+          load_ARP_data()
+        }
+        stateARPcomplianceData <- ARPComplianceData$stateLevel 
+        aggregatedComplianceData <- aggregate(stateARPcomplianceData[,c("allocated", 
+                                                                        "totalAllowancesDeducted",
+                                                                        "carriedOver")],
+                                              list(stateARPcomplianceData$programCode,
+                                                   stateARPcomplianceData$year),
+                                              sum)
+        colnames(aggregatedComplianceData)[1:2] <- c("programCode","year")
+        tableData = merge(x=aggregatedComplianceData,
+                                         y=programInfo$currentCompliancePrograms[,c("programCode",
+                                                                                    "programDescription")],
+                                         by.x="programCode")
       }
       else {
         facilityComplianceData <- get_allow_comp_data(
           complianceYears = seq(minimumYear,maximumYear),
           programs = programsSelected)
+        
+        names(facilityComplianceData)[names(facilityComplianceData) == 
+                                        'programCodeInfo'] <- 'programCode'
+        
+        tableData <- getProgramTableData(facilityComplianceData, 
+                                         complianceColumns)
       }
       
-      names(facilityComplianceData)[names(facilityComplianceData) == 
-                                      'programCodeInfo'] <- 'programCode'
-      
-      output$programPlots <- renderUI({
-        tagList(
-          lineGraphUI(session$ns("programPlot"))
-          )
-        })
-      
-      
-      
-      complianceColumns <- c("allocated", 
-                             "totalAllowancesDeducted",
-                             "carriedOver")
-      
-      rowDisplayColumnNames <- tableLabelConversion$label[match(complianceColumns,tableLabelConversion$columnName)]
-      
-      tableData <- getProgramTableData(facilityComplianceData, 
-                                       complianceColumns)
-      
-      if (programsSelected %in% unique(state_budgets$programCode)){
+      if (programsSelected %in% unique(csaprStateBudgets$programCode)){
         programDF <- csaprAllocations[csaprAllocations$programCode == programsSelected,]
         aggregatedAllocationsProgramDF <- aggregate(allocated~year+programCode,data=programDF,sum)
         
@@ -293,6 +284,14 @@ allowancesBankedServer <- function(input, output, session) {
                                           by=c("programCode","year"))
         tableData$carriedOver <- tableData$allocated - tableData$totalAllowancesDeducted
       }
+      
+      output$programPlots <- renderUI({
+        tagList(
+          lineGraphUI(session$ns("programPlot"))
+        )
+      })
+      
+      rowDisplayColumnNames <- tableLabelConversion$label[match(complianceColumns,tableLabelConversion$columnName)]
       
       names(tableData) <- tableLabelConversion$label[match(names(tableData), 
                                                            tableLabelConversion$columnName)]
@@ -335,8 +334,13 @@ allowancesBankedServer <- function(input, output, session) {
                                        "stateCode",
                                        "year")
     aggregatedData = merge(x=aggregatedData,
-                           y=states[,c("stateCode","stateName")],
+                           y=statesMdm[,c("stateCode","stateName")],
                            by.x="stateCode")
+    
+    aggregatedComplianceData = merge(x=aggregatedData,
+                                     y=programInfo$currentCompliancePrograms[,c("programCode",
+                                                                                "programDescription")],
+                                     by.x="programCode")
     
     aggregatedData
       
@@ -355,8 +359,8 @@ allowancesBankedServer <- function(input, output, session) {
     colnames(aggregatedData)[1:2] <- c("programCode","year")
     
     aggregatedComplianceData = merge(x=aggregatedData,
-                                     y=currentCompliancePrograms[,c("programCode",
-                                                                    "programDescription")],
+                                     y=programInfo$currentCompliancePrograms[,c("programCode",
+                                                                                "programDescription")],
                                      by.x="programCode")
     
     aggregatedComplianceData
