@@ -18,7 +18,7 @@ source("./globals/global-static.R")
 
 
 ### Program year data ###
-# Gett all programs and storing appropriate emission and compliance years
+# Get all programs and storing appropriate emission and compliance years
 res = GET(programMdmUrl)
 allPrograms <- fromJSON(rawToChar(res$content))
 allPrograms$programDescription <- paste0(
@@ -48,6 +48,7 @@ allAllowancePrograms$complianceYears[which(allAllowancePrograms$programCode %in%
 allAllowancePrograms$emissionYears[which(allAllowancePrograms$programCode %in% c("OTC"))] <- paste(seq(1999, 2002), collapse=',')
 allAllowancePrograms$complianceYears[which(allAllowancePrograms$programCode %in% c("OTC"))] <- paste(seq(1999, 2002), collapse=',')
 
+# adding beginning year to current programs
 startYears <- as.data.frame(allAllowancePrograms[allAllowancePrograms$retiredIndicator == FALSE,]$programCode)
 colnames(startYears) <- c('programCode')
 startYears["startYear"] <- NA
@@ -56,20 +57,25 @@ startYears$startYear[which(startYears$programCode %in% c("CSOSG1","CSOSG2"))] <-
 startYears$startYear[which(startYears$programCode %in% c("CSOSG3"))] <- 2021
 startYears$startYear[which(startYears$programCode %in% c("TXSO2"))] <- 2019
 
+# (ARP) using the APIs to get the last year of data (what year returns data)
 allAllowancePrograms$emissionYears[which(allAllowancePrograms$programCode == "ARP")] <- paste(
   append(c(1980,1985,1990),seq(1995,get_latest_emission_valid_vear(quarterEmissionsPageUrl, c("ARP")))), collapse=',')
 allAllowancePrograms$complianceYears[which(allAllowancePrograms$programCode == "ARP")] <- paste(
   seq(1995,get_latest_valid_vear(compliancePageUrl, c("ARP"))), collapse=',')
 
+# For all other programs, use the APIs to find the latest year of data per program
 for (prg in allAllowancePrograms[allAllowancePrograms$retiredIndicator == FALSE,]$programCode){
   if(prg!="ARP"){
+    # API calls
     latestEmissionYear <- get_latest_emission_valid_vear(quarterEmissionsPageUrl, c(prg))
     latestComplianceYear <- get_latest_valid_vear(compliancePageUrl, c(prg))
+    # In case an emission year isn't present, 'NA' remains in the cell
     if(!is.na(latestEmissionYear)){
       allAllowancePrograms$emissionYears[which(allAllowancePrograms$programCode == prg)] <- 
         paste(seq(startYears$startYear[startYears$programCode==prg],
                   latestEmissionYear), collapse=',')
     }
+    # In case a compliance year isn't present, 'NA' remains in the cell
     if(!is.na(latestComplianceYear)){
       allAllowancePrograms$complianceYears[which(allAllowancePrograms$programCode == prg)] <- 
         paste(seq(startYears$startYear[startYears$programCode==prg],
@@ -78,10 +84,13 @@ for (prg in allAllowancePrograms[allAllowancePrograms$retiredIndicator == FALSE,
   }
 }
 
-write.csv(allAllowancePrograms, file = "./data/allowanceProgramData.csv", row.names = FALSE)
+# write the file
+write.csv(allAllowancePrograms, file = "./data/allowanceProgramTable.csv", row.names = FALSE)
 
+# reassign dataframe to avoid conflict in loop
 compliancePrograms <- allAllowancePrograms
 
+# loops above store years as strings to be able to save to a file. The is reverting back to interger lists.
 for (i in 1:nrow(allAllowancePrograms)){
   if (!is.na(allAllowancePrograms$complianceYears[i])){
     allAllowancePrograms$complianceYears[i] <- list(c(as.integer(unlist(strsplit(compliancePrograms$complianceYears[i], ",")))))
@@ -95,12 +104,41 @@ for (i in 1:nrow(allAllowancePrograms)){
 ### Collect compliance data for all years ###
 complianceYears <- unique(na.omit(unlist(allAllowancePrograms$complianceYears)))
 
-allYearAllowanceFacilityData <- get_allow_comp_data(complianceYears)
+# getting all compliance data for all applicable compliance years
+allYearComplianceFacilityData <- get_allow_comp_data(complianceYears)
 
-complianceFacilityDataLatestYear <- allYearAllowanceFacilityData[allYearAllowanceFacilityData$year == latestComplianceYear,]
+complianceFacilityDataLatestYear <- allYearComplianceFacilityData[allYearComplianceFacilityData$year == latestComplianceYear,]
 
-write.csv(allYearAllowanceFacilityData, file = paste0(getwd(),"/data/allYearAllowanceFacilityData.csv"), row.names = FALSE)
-write.csv(complianceFacilityDataLatestYear, file = paste0(getwd(),"/data/complianceFacilityDataLatestYear.csv"), row.names = FALSE)
+complianceFacilityDataLatestFormat <- bind_rows(lapply(1:nrow(complianceFacilityDataLatestYear), function(row){
+  if (is.na(complianceFacilityDataLatestYear$excessEmissions[row])){
+    compStr <- "Yes"
+  }
+  else{compStr <- "No"}
+  c("Facility Name"=complianceFacilityDataLatestYear$facilityName[row], 
+    "Facility Id"=complianceFacilityDataLatestYear$facilityId[row], 
+    "Account Number"=complianceFacilityDataLatestYear$accountNumber[row], 
+    "Program"=complianceFacilityDataLatestYear$programCodeInfo[row], 
+    "Year"=complianceFacilityDataLatestYear$year[row],
+    "In compliance?"=compStr)
+}))
+
+
+allYearComplianceFacilityDataFormat <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
+  if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
+    c("Facility Name"=allYearComplianceFacilityData$facilityName[row], 
+      "Facility Id"=allYearComplianceFacilityData$facilityId[row], 
+      "Account Number"=allYearComplianceFacilityData$accountNumber[row], 
+      "Program"=allYearComplianceFacilityData$programCodeInfo[row], 
+      "Year"=allYearComplianceFacilityData$year[row],
+      "In compliance?"="No")
+  }
+}))
+
+complianceDataTableForDownload <- rbind(complianceFacilityDataLatestFormat,allYearComplianceFacilityDataFormat)
+
+write.csv(complianceDataTableForDownload, file = paste0(getwd(),"/data/complianceDataTableForDownload.csv"), row.names = FALSE)
+
+
 ######
 
 currentCompliancePrograms <- allAllowancePrograms[allAllowancePrograms$retiredIndicator == FALSE,]
@@ -123,7 +161,7 @@ applicableAllowCompTable = merge(x=applicableAllowCompTable,
 
 stateYearProgramApplicable <- unique(applicableAllowCompTable[,which(!(names(applicableAllowCompTable) %in% c("facilityId", "ownerOperator")))])
 
-write.csv(applicableAllowCompTable, file = paste0(getwd(),"/data/applicableAllowCompFacility.csv"), row.names = FALSE)
+#write.csv(applicableAllowCompTable, file = paste0(getwd(),"/data/applicableAllowCompFacility.csv"), row.names = FALSE)
 write.csv(stateYearProgramApplicable, file = paste0(getwd(),"/data/applicableAllowCompState.csv"), row.names = FALSE)
 ######
 
@@ -150,7 +188,7 @@ aggregatedARPData = merge(x=aggregatedARPData,
                                                          "programDescription")],
                           by.x="programCode")
 
-write.csv(ARPComplianceData, file = paste0(getwd(),"/data/ARPComplianceData-FacilityLevel.csv"), row.names = FALSE)
+#write.csv(ARPComplianceData, file = paste0(getwd(),"/data/ARPComplianceData-FacilityLevel.csv"), row.names = FALSE)
 write.csv(aggregatedARPData, file = paste0(getwd(),"/data/ARPComplianceData-StateLevel.csv"), row.names = FALSE)
 ######
 
@@ -177,8 +215,7 @@ write.csv(unitData, file = "./data/unitData.csv", row.names = FALSE)
 
 
 ### Filter unit data to get condensed facility data ###
-
-programFacilityData <- unitData %>% select(stateCode, county, facilityId,
+programFacilityData <- unitData %>% select(stateCode, stateName, county, facilityId,
                                            facilityName, year, programCodeInfo,
                                            longitude, latitude)
 programFacilityData <- unique(programFacilityData)
@@ -204,7 +241,7 @@ programFacilityDataByProgram = merge(x=programFacilityDataByProgram,
                             y=allPrograms[,c("programCode","programDescription")],
                             by="programCode",all.x=TRUE)
 
-write.csv(programFacilityDataByProgram, file = "./data/programFacilityData.csv", row.names = FALSE)
+write.csv(programFacilityDataByProgram, file = "./data/facilityLocationData.csv", row.names = FALSE)
 
 
 ### Collect facility data for all years ###
