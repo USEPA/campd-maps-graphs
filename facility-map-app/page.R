@@ -141,18 +141,17 @@ facilityMapAppServer <- function(input, output, session) {
   
   global_fac_map_vars()
   
-  facilityDataTableForDownload <- store_facility_data(unitData)
   
   output$download_facility_data <- downloadHandler(
     filename =  function() { paste0("facility-data-",as.character(programInfo$latestComplianceYear),".csv") },
     content = function(file) {
-      write.csv(facilityDataTableForDownload, file, row.names = FALSE)
+      write.csv(load_facility_download_file(), file, row.names = FALSE)
     }
   )
   output$download_compliance_data <- downloadHandler(
     filename =  function() { paste0("compliance-data.csv") },
     content = function(file) {
-      write.csv(makecomplianceDataTableForDownload(), file, row.names = FALSE)
+      write.csv(load_compliance_download_file(), file, row.names = FALSE)
     }
   )
   
@@ -179,11 +178,6 @@ facilityMapAppServer <- function(input, output, session) {
       stateFilterVal(stateSearch()$stateName)
       # display county outline and zoom to location
       update_map_search(markerData(),stateSf,stateSearch(),'stateName','stateOutline')
-      # clear program filter
-      #updateSelectizeInput(
-      #  session = session,
-      #  inputId = "programSelection",
-      #  selected=character(0))
     }
   },ignoreInit = TRUE)
   observeEvent(coutSearch(),{
@@ -507,7 +501,7 @@ facilityMapAppServer <- function(input, output, session) {
     selectedUnitFac <- unitData[unitData$facilityId == facilityId,]
     selectedFac <- unique(programFacilityData[programFacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
     fuelTypesStg <- paste0(unique(unitData$primaryFuelInfo[unitData$facilityId == facilityId]),collapse = ", ")
-    operatingStatuses <- paste0(lapply(selectedUnitFac$unitId,function(unit){
+    operatingStatuses <- paste0(lapply(sort(selectedUnitFac$unitId),function(unit){
       paste0("<strong>",unit,"</strong>",": ",selectedUnitFac$operatingStatus[selectedUnitFac$unitId == unit])
     }),collapse = "<br/>")
     
@@ -555,9 +549,84 @@ facilityMapAppServer <- function(input, output, session) {
   get_compliance_info_for_side_panel <- function(facilityId){
     
     selectedFac <- unique(programFacilityData[programFacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
-    complianceFacilityData <- get_allow_comp_data(programInfo$latestComplianceYear,facilities=c(facilityId))
     
-    accountNumber <- as.character(complianceFacilityData$accountNumber[1])
+    complianceYears <- as.list(unique(na.omit(unlist(programInfo$allCompliancePrograms$complianceYears))))
+    allYearComplianceFacilityData <- get_allow_comp_data(complianceYears,facilities=c(facilityId))
+    
+    accountInfo <- get_account_info_data(facilityId)
+    
+    accountNumber <- as.character(accountInfo$accountNumber[accountInfo$accountNumber %like% 'FACLTY'][1])
+    if (length(accountNumber) == 0){
+      accountNumber <- "No account associated with this facility."
+    }
+    
+    if(length(allYearComplianceFacilityData)==0){
+      subjectedPrograms <- "This facility does not have a history of being subjected to CAMD's Allowance-based programs."
+      complianceDisplayTable <- ""
+      outOfComplianceTable <- ""
+    }
+    
+    else{
+      latestComplianceFacilityData <- allYearComplianceFacilityData[allYearComplianceFacilityData$year == programInfo$latestComplianceYear,]
+      subjectedPrograms <- paste0(unique(latestComplianceFacilityData$programCodeInfo),collapse = ", ")
+      if (subjectedPrograms == ""){
+        subjectedPrograms <- "This facility is currently not subjected to CAMD's Allowance-based programs."
+        complianceDisplayTable <- ""
+      }
+      else{
+        compTableForLatestYear <- bind_rows(lapply(latestComplianceFacilityData$programCodeInfo, function(prg){
+          if (is.na(latestComplianceFacilityData$excessEmissions[latestComplianceFacilityData$programCodeInfo == prg])){
+            compStr <- "Yes"
+          }
+          else{compStr <- "No"}
+          c("Program"=prg, "In compliance?"=compStr)
+        }))
+        
+        complianceDisplayTable <- tagList(
+          tags$h5(tags$u(paste0("Compliance for ",programInfo$latestComplianceYear,":"))),
+          HTML(getHTML(compTableForLatestYear))
+        )
+      }
+      
+      if(nrow(allYearComplianceFacilityData) == 0){
+        outOfComplianceTable <- HTML("<br>This facility has no other record of non-compliance")
+      }
+      else{
+        compYearsOutOfComp <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
+          if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
+            c("Program"=allYearComplianceFacilityData$programCodeInfo[row], 
+              "Year"=allYearComplianceFacilityData$year[row],
+              "In compliance?"="No")
+          }
+        }))
+        outOfComplianceTable <- tagList(
+          tags$h5(tags$u("Non-Compliant Years:")),
+          HTML(getHTML(compYearsOutOfComp)),
+          tags$p("All other years for this facility were compliant.")
+        )
+      }
+    }
+    
+    content <- 
+      tagList(
+        tags$h4(selectedFac$facilityName),
+        tags$strong("Account Number:"),sprintf(" %s", accountNumber),
+        tags$h5(tags$u("Subjected Programs:")),sprintf(" %s", subjectedPrograms), tags$br(),
+        complianceDisplayTable,
+        outOfComplianceTable
+      )
+    
+    content
+    
+  }
+  
+  get_compliance_info_for_side_panel_old <- function(facilityId){
+    
+    selectedFac <- unique(programFacilityData[programFacilityData$facilityId == facilityId,c("facilityName","county","stateCode","stateName")])
+    complianceFacilityData <- get_allow_comp_data(programInfo$latestComplianceYear,facilities=c(facilityId))
+    accountInfo <- get_account_info_data(facilityId)
+    
+    accountNumber <- as.character(accountInfo$accountNumber[accountInfo$accountNumber %like% 'FACLTY'][1])
     if (length(accountNumber) == 0){
       accountNumber <- "No account associated with this facility."
     }
@@ -607,22 +676,7 @@ facilityMapAppServer <- function(input, output, session) {
           tags$p("All other years for this facility were compliant.")
         )
       }
-      
-      'beginDate <- paste0(programInfo$latestComplianceYear,"-01-01")
-      endDate <- paste0(programInfo$latestComplianceYear,"-12-31")
-      transactionData <- get_transaction_data(facilityId,beginDate,endDate)
-      if(is.null(transactionData)){
-        transactionDisplayTable <- ""
-      }
-      else{
-        transactionTableData <- make_transaction_table(transactionData,facilityId)
-        transactionDisplayTable <- tagList(
-          tags$h5("Transaction data for 2020:"),
-          HTML(getHTML(transactionTableData))
-        )
-        }'
-      
-      }
+    }
     
     content <- 
       tagList(

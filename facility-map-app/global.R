@@ -2,42 +2,19 @@
 # data for usage
 
 global_fac_map_vars <- function(){
-  programFacilityData <<- read.csv(file = paste0(gitRawBase,"/data/programFacilityData.csv"))
+  programFacilityData <<- read.csv(file = paste0(gitRawBase,"/data/facilityLocationData.csv"))
   
 }
 
+# used to get rid of columns that would cause duplication of lat/long data
+# programFacilityData has a program column and facilities can be in multiple programs
 filter_facility_latlong_data <- function(facilityData){
   unique(facilityData[,c("facilityId","stateCode","stateName","county","facilityName","longitude","latitude")])
 }
 
-makecomplianceDataTableForDownload <- function(){
-  allYearComplianceFacilityData <- read.csv(file = paste0(gitRawBase,"/data/allYearAllowanceFacilityData.csv"))
-  complianceFacilityDataLatest <- read.csv(file = paste0(gitRawBase,"/data/complianceFacilityDataLatestYear.csv"))
-  
-  complianceFacilityDataLatestFormat <- bind_rows(lapply(1:nrow(complianceFacilityDataLatest), function(row){
-    if (is.na(complianceFacilityDataLatest$excessEmissions[row])){
-      compStr <- "Yes"
-    }
-    else{compStr <- "No"}
-    c("Facility Name"=complianceFacilityDataLatest$facilityName[row], 
-      "Facility Id"=complianceFacilityDataLatest$facilityId[row], 
-      "Account Number"=complianceFacilityDataLatest$accountNumber[row], 
-      "Program"=complianceFacilityDataLatest$programCodeInfo[row], 
-      "Year"=complianceFacilityDataLatest$year[row],
-      "In compliance?"=compStr)
-  }))
-  
-  
-  allYearComplianceFacilityDataFormat <- bind_rows(lapply(1:nrow(allYearComplianceFacilityData), function(row){
-    if (!is.na(allYearComplianceFacilityData[row,"excessEmissions"])){
-      c("Facility Name"=allYearComplianceFacilityData$facilityName[row], 
-        "Facility Id"=allYearComplianceFacilityData$facilityId[row], 
-        "Account Number"=allYearComplianceFacilityData$accountNumber[row], 
-        "Program"=allYearComplianceFacilityData$programCodeInfo[row], 
-        "Year"=allYearComplianceFacilityData$year[row],
-        "In compliance?"="No")
-    }
-  }))
-  
-  complianceDataTableForDownload <- rbind(complianceFacilityDataLatestFormat,allYearComplianceFacilityDataFormat)
+load_compliance_download_file <- function(){
+  read.csv(file = paste0(gitRawBase,"/data/complianceDataTableForDownload.csv"))
+}
+load_facility_download_file <- function(){
+  read.csv(file = paste0(gitRawBase,"/data/facilityDataTableForDownload.csv"))
 }
