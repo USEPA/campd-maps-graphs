@@ -88,6 +88,11 @@ ul.intro-list li.indent {
   text-align: center;
 }
 
+/* Shiny busy */
+.shinybusy-overlay {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
 /* Banner and Nav bar */
 
 .banner {
@@ -113,7 +118,8 @@ ul.intro-list li.indent {
 
 .navbar .navbar-header span,
 .navbar .navbar-header span:hover,
-.navbar .container-fluid ul li a {
+.navbar .container-fluid ul li a,
+.navbar .container-fluid ul li a:focus {
   color: white; /* text color */
 }
 
