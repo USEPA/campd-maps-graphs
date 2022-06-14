@@ -11,7 +11,7 @@ global_vars <- function(){
     allPrograms$programCode, ")")
   
   # Get all allowance programs 
-  compliancePrograms <- read.csv(paste0(gitRawBase,"/data/allowanceProgramData.csv"))
+  compliancePrograms <- read.csv(paste0(gitRawBase,"/data/allowanceProgramTable.csv"))
   allCompliancePrograms <- compliancePrograms
   
   for (i in 1:nrow(allCompliancePrograms)){

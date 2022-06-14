@@ -203,8 +203,7 @@ unitData <- subset(unitData, select=-c(associatedStacks,epaRegion,nercRegion,cou
                                        associatedGeneratorsAndNameplateCapacity))
 
 
-unitData = merge(x=unitData,
-                 y=states[,c("stateCode","stateName")],
+unitData = merge(x=unitData, y=states[,c("stateCode","stateName")],
                  by.x="stateCode")
 
 #unitData = merge(x=unitData, y=states[,c("stateCode","stateName")],

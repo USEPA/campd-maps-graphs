@@ -7,32 +7,34 @@ apiKEY <- Sys.getenv("API_KEY")
 gitRawBase <- "https://raw.githubusercontent.com/USEPA/campd-maps-graphs/testing"
 
 # annual emissions url
-#annualEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/annual?API_KEY=",apiKEY)
-annualEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual/stream?API_KEY=",apiKEY)
+annualEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/annual?API_KEY=",apiKEY)
+#annualEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annual/stream?API_KEY=",apiKEY)
 annualEmissionsPageUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/annualAPI_KEY=",apiKEY)
 # ozone emissions url
-#ozoneEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/ozone?API_KEY=",apiKEY)
-ozoneEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone/stream?API_KEY=",apiKEY)
+ozoneEmissionsUrl <- paste0(apiUrlBase,"/streaming-services/emissions/apportioned/ozone?API_KEY=",apiKEY)
+#ozoneEmissionsUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/ozone/stream?API_KEY=",apiKEY)
 # quarter emissions url
 quarterEmissionsPageUrl <- paste0(apiUrlBase,"/emissions-mgmt/apportioned/quarterly?API_KEY=",apiKEY)
 # allowance compliance stream url
-#complianceUrl <- paste0(apiUrlBase,"/streaming-services/allowance-compliance?API_KEY=",apiKEY)
-complianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/stream?API_KEY=",apiKEY)
+complianceUrl <- paste0(apiUrlBase,"/streaming-services/allowance-compliance?API_KEY=",apiKEY)
+#complianceUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/stream?API_KEY=",apiKEY)
 # allowance compliance page url
 compliancePageUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance?API_KEY=",apiKEY)
 # allowance compliance url
 complianceApplicableUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-compliance/attributes/applicable?api_key=",apiKEY)
 # facilities stream url
-#facilitiesUrl <- paste0(apiUrlBase,"/streaming-services/facilities/attributes?API_KEY=",apiKEY)
-facilitiesUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/stream?API_KEY=",apiKEY)
+facilitiesUrl <- paste0(apiUrlBase,"/streaming-services/facilities/attributes?API_KEY=",apiKEY)
+#facilitiesUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/stream?API_KEY=",apiKEY)
 # facilities (applicable) url
 facilitiesApplicableUrl <- paste0(apiUrlBase,"/facilities-mgmt/facilities/attributes/applicable?API_KEY=",apiKEY)
 # allowance holdings url
-#allowanceHoldingsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-holdings?API_KEY=",apiKEY)
-allowanceHoldingsUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-holdings/stream?API_KEY=",apiKEY)
+allowanceHoldingsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-holdings?API_KEY=",apiKEY)
+#allowanceHoldingsUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-holdings/stream?API_KEY=",apiKEY)
 # allowance transactions url
-#allowanceTransactionsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-transactions?API_KEY=",apiKEY)
-allowanceTransactionsUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-transactions/stream?API_KEY=",apiKEY)
+allowanceTransactionsUrl <- paste0(apiUrlBase,"/streaming-services/allowance-transactions?API_KEY=",apiKEY)
+#allowanceTransactionsUrl <- paste0(apiUrlBase,"/account-mgmt/allowance-transactions/stream?API_KEY=",apiKEY)
+# account info url
+accountInfoUrl <- paste0(apiUrlBase,"/streaming-services/accounts/attributes?API_KEY=",apiKEY)
 # program mdm url
 programMdmUrl <- paste0(apiUrlBase,"/master-data-mgmt/programs?API_KEY=",apiKEY)
 # program mdm url
@@ -196,6 +198,13 @@ get_annual_emiss_data <- function(emissionYears, programs=NULL,
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
   res = GET(annualEmissionsUrl, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
   annualEmissData <- fromJSON(rawToChar(res$content))
   
   annualEmissData
@@ -214,6 +223,13 @@ get_ozone_emiss_data <- function(emissionYears, programs=NULL,
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
   res = GET(ozoneEmissionsUrl, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
   annualEmissData <- fromJSON(rawToChar(res$content))
   
   annualEmissData
@@ -224,6 +240,13 @@ get_facility_data <- function(years){
   query <- list(year=(paste0(years, collapse = '|')))
   
   res = GET(facilitiesUrl, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
   yearFacilityData <- fromJSON(rawToChar(res$content))
   
   yearFacilityData
@@ -242,6 +265,13 @@ get_allow_comp_data <- function(complianceYears, programs=NULL,
   if (!is.null(facilities)){query <- append(query, list(facilityId = (paste0(facilities, collapse = '|'))))}
   
   res = GET(complianceUrl, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
   yearComplianceData <- fromJSON(rawToChar(res$content))
   
   yearComplianceData
@@ -253,10 +283,37 @@ get_allow_holding_data <- function(facilityId){
   query <- list(facilityId=facilityId)
   
   res = GET(allowanceHoldingsUrl, query = query)
-  holdingData <- fromJSON(rawToChar(res$content))
   
-  aggregate(totalBlock ~ programCodeInfo, 
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
+  holdingData <- fromJSON(rawToChar(res$content))
+    
+  returnData <- aggregate(totalBlock ~ programCodeInfo, 
             data = holdingData[c("programCodeInfo","totalBlock")], sum)
+  
+  returnData
+}
+
+# API call to get allowance holdings info for a facility
+get_account_info_data <- function(facilityId){
+  
+  query <- list(facilityId=facilityId)
+  
+  res = GET(accountInfoUrl, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
+  returnData <- fromJSON(rawToChar(res$content))
+  
+  returnData
 }
 
 # API call to get transaction data by a facility
@@ -269,6 +326,13 @@ get_transaction_data <- function(facilityId, transactionBeginDate,
                 facilityId=facilityId)
   
   res = GET(allowanceTransactionsUrl, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
   transactionData <- fromJSON(rawToChar(res$content))
   transactionData
 }
@@ -283,6 +347,13 @@ get_latest_valid_vear <- function(url, program=NULL){
   if (!is.null(program)){baseQuery <- append(baseQuery, list(programCodeInfo = program))}
   query <- append(baseQuery, list(year=latestYear))
   res = GET(url, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("API status code:",res$status_code,annualEmissionsUrl,"..",res$message))
+    }
+  }
+  
   if (length(res$content) <= 2){
     while(length(res$content) <= 2){
       latestYear <- latestYear - 1
@@ -294,6 +365,9 @@ get_latest_valid_vear <- function(url, program=NULL){
       query <- append(baseQuery, list(year=latestYear))
       res = GET(url, query = query)
     }
+  }
+  else{
+    stop("get_latest_valid_vear function. No response content from API.")
   }
   
   return(latestYear)
@@ -310,6 +384,13 @@ get_latest_emission_valid_vear <- function(url, program=NULL){
   if (!is.null(program)){baseQuery <- append(baseQuery, list(programCodeInfo = program))}
   query <- append(baseQuery, list(year=latestYear))
   res = GET(url, query = query)
+  
+  if (length(res$status_code) != 0){
+    if (res$status_code != 200){
+      stop(paste("Error in",annualEmissionsUrl,"API status code:",res$status_code,"..",res$message))
+    }
+  }
+  
   if (length(res$content) <= 2 | res$status_code==400){
     while(length(res$content) <= 2 | res$status_code==400){
       latestYear <- latestYear - 1
@@ -321,6 +402,9 @@ get_latest_emission_valid_vear <- function(url, program=NULL){
       query <- append(baseQuery, list(year=latestYear))
       res = GET(url, query = query)
     }
+  }
+  else{
+    stop("get_latest_emission_valid_vear function. No response content from API.")
   }
   
   return(latestYear)
