@@ -34,5 +34,25 @@ $(function() {
     
     }
   )
+  
+  $(document).on("shiny:busy", function(event) {
+    const keyboardfocusableElements = document.querySelectorAll(
+      'a[href], button, input, textarea, select, details'
+    )
+    for (let i=0; i < keyboardfocusableElements.length; i++){
+      keyboardfocusableElements[i].disabled = true;
+      keyboardfocusableElements[i].blur();
+    }
+  })
+  
+  $(document).on("shiny:idle", function(event) {
+    const keyboardfocusableElements = document.querySelectorAll(
+      'a[href], button, input, textarea, select, details'
+    )
+    for (let i=0; i < keyboardfocusableElements.length; i++){
+      keyboardfocusableElements[i].disabled = false;
+    }
+  })
+  
 });
 
