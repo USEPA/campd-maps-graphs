@@ -18,5 +18,6 @@ packages:
     - name: jsonlite
     - name: tidyverse
     - name: lubridate
+    - name: data.table
     - name: zoo
     

@@ -43,6 +43,7 @@ library(htmltools)
 library(jsonlite)
 library(tidyverse)
 library(lubridate)
+library(data.table)
 library(zoo)
 
 load_dot_env(".env")
@@ -71,11 +72,13 @@ source("./facility-map-app/page.R")
 
 ui <- function(request) {
   fluidPage(
+    tags$head(tags$link(rel="shortcut icon", href=paste0(gitRawBase,"/www/favicon.ico"))),
     tags$html(class="CAMPDRShiny"),
     tags$html(lang="en"),
     class="main-page",
     includeCSS("www/app.css"),
     includeScript('www/script.js'),
+    # adding load spinner
     add_busy_spinner(
       spin = "fading-circle",
       color = "#112446",
@@ -130,11 +133,11 @@ server <- function(input, output, session) {
     )})
   
   observe({
-    updateQueryString(programsAppURL(), mode = "replace", session)
+    updateQueryString(facilityMapURL(), mode = "replace", session)
     output$page <- renderUI({
-      programAppUI("id")
+      facilityMapAppUI("id")
     })
-    callModule(programAppServer, "id")
+    callModule(facilityMapAppServer, "id")
   })
   
   observe({
