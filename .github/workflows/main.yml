@@ -44,3 +44,12 @@ jobs:
           #fail_action: # optional
           # Whether Github issues should be created or not
           #allow_issue_writing: # optional, default is true
+      - name: OWASP ZAP Full Scan
+        # You may pin to the exact commit or the version.
+        # uses: zaproxy/action-full-scan@6eade0f93b10fad8cfb4e63b979703a2cbd0cc98
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          # GitHub Token to create issues in the repository
+          token: ${{ github.token }}
+          # Target URL
+          target: https://maps-graphs-app-impressive-parrot-pn.app.cloud.gov/?page=program-insights
