@@ -1,0 +1,20 @@
+"programCode","programDescription","compParameterCode","programGroupCode","programGroupDescription","ozoneIndicator","annualIndicator","emissionsUIFilter","allowanceUIFilter","complianceUIFilter","retiredIndicator","tradingEndDate"
+"ARP","Acid Rain Program (ARP)","SO2",NA,NA,FALSE,TRUE,TRUE,TRUE,TRUE,FALSE,NA
+"CAIRNOX","CAIR NOx Annual Program (CAIRNOX)","NOX","CAIR","Clean Air Interstate Rule",FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,"2016-08-10"
+"CAIROS","CAIR NOx Ozone Season Program (CAIROS)","NOX","CAIR","Clean Air Interstate Rule",TRUE,FALSE,TRUE,TRUE,FALSE,TRUE,"2016-08-10"
+"CAIRSO2","CAIR SO2 Annual Program (CAIRSO2)","SO2","CAIR","Clean Air Interstate Rule",FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,"2016-08-10"
+"CSNOX","Cross-State Air Pollution Rule NOx Annual Program (CSNOX)","NOX","CSAPR","Cross-State Air Pollution Rule",FALSE,TRUE,TRUE,TRUE,TRUE,FALSE,NA
+"CSNOXOS","Cross-State Air Pollution Rule NOx Ozone Season Program (CSNOXOS)","NOX","CSAPR","Cross-State Air Pollution Rule",TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,"2017-10-23"
+"CSOSG1","Cross-State Air Pollution Rule NOx Ozone Season Program Group 1 (CSOSG1)","NOX","CSAPR","Cross-State Air Pollution Rule",TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,NA
+"CSOSG2","Cross-State Air Pollution Rule NOx Ozone Season Program Group 2 (CSOSG2)","NOX","CSAPR","Cross-State Air Pollution Rule",TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,NA
+"CSOSG3","Cross-State Air Pollution Rule NOx Ozone Season Program Group 3 (CSOSG3)","NOX","CSAPR","Cross-State Air Pollution Rule",TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,NA
+"CSSO2G1","Cross-State Air Pollution Rule SO2 Annual Program Group 1 (CSSO2G1)","SO2","CSAPR","Cross-State Air Pollution Rule",FALSE,TRUE,TRUE,TRUE,TRUE,FALSE,NA
+"CSSO2G2","Cross-State Air Pollution Rule SO2 Annual Program Group 2 (CSSO2G2)","SO2","CSAPR","Cross-State Air Pollution Rule",FALSE,TRUE,TRUE,TRUE,TRUE,FALSE,NA
+"MATS","Mercury and Air Toxics Standards (MATS)",NA,NA,NA,FALSE,TRUE,FALSE,FALSE,FALSE,FALSE,NA
+"NBP","NOx Budget Trading Program (NBP)","NOX",NA,NA,TRUE,FALSE,TRUE,TRUE,FALSE,TRUE,"2009-03-25"
+"NHNOX","NH NOx Program (NHNOX)",NA,NA,NA,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,NA
+"NSPS4T","New Source Performance Standards subpart TTTT (NSPS4T)",NA,NA,NA,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,NA
+"OTC","OTC NOx Budget Program (OTC)","NOX",NA,NA,TRUE,FALSE,TRUE,TRUE,FALSE,TRUE,"2003-05-06"
+"RGGI","Regional Greenhouse Gas Initiative (RGGI)",NA,NA,NA,FALSE,TRUE,TRUE,FALSE,FALSE,FALSE,NA
+"SIPNOX","SIP NOx Program (SIPNOX)",NA,NA,NA,TRUE,FALSE,TRUE,FALSE,FALSE,FALSE,NA
+"TXSO2","Texas SO2 Trading Program (TXSO2)","SO2","TXSO2","Texas SO2 Trading Program",FALSE,TRUE,TRUE,TRUE,TRUE,FALSE,NA
